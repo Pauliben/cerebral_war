@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🤖 Robo Tug of War Quiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- SCREENS -->
+<div id="screen-start" class="screen active">
+  <div class="stars"></div>
+  <div class="start-content">
+    <div class="logo-bot">🤖</div>
+    <h1 class="game-title">ROBO<span>TUG</span></h1>
+    <p class="game-subtitle">The Ultimate Robot Quiz Battle</p>
+    <div class="player-setup">
+      <div class="player-card" data-player="1">
+        <div class="player-bot" style="--hue:200">🤖</div>
+        <label>Player 1 Name</label>
+        <input id="p1-name" type="text" placeholder="Red Bot" maxlength="12" />
+        <div class="controls-hint">
+          <span>Answer: <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></span>
+        </div>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="player-card" data-player="2">
+        <div class="player-bot" style="--hue:20">🤖</div>
+        <label>Player 2 Name</label>
+        <input id="p2-name" type="text" placeholder="Blue Bot" maxlength="12" />
+        <div class="controls-hint">
+          <span>Answer: <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd></span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-start" id="btn-start">⚡ START BATTLE</button>
+    <p class="rules-note">12 questions · 100 second timer · First to finish or most correct wins!</p>
+  </div>
+</div>
+
+<div id="screen-game" class="screen">
+  <!-- Timer bar -->
+  <div class="timer-bar-wrap">
+    <div class="timer-bar" id="timer-bar"></div>
+    <span class="timer-text" id="timer-text">100</span>
+  </div>
+
+  <!-- Arena -->
+  <div class="arena">
+    <!-- P1 side -->
+    <div class="player-side side-left" id="side-p1">
+      <div class="player-name" id="name-p1">Red Bot</div>
+      <div class="score-display"><span id="score-p1">0</span><span class="score-label"> correct</span></div>
+      <div class="progress-pips" id="pips-p1"></div>
+      <div class="robot-wrap" id="robot-p1">
+        <div class="robot" id="robo-p1">
+          <div class="robo-head">
+            <div class="robo-eye left"></div>
+            <div class="robo-eye right"></div>
+            <div class="robo-mouth"></div>
+          </div>
+          <div class="robo-body">
+            <div class="robo-arm left-arm"></div>
+            <div class="robo-torso"></div>
+            <div class="robo-arm right-arm"></div>
+          </div>
+          <div class="robo-legs">
+            <div class="robo-leg"></div>
+            <div class="robo-leg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rope -->
+    <div class="rope-zone">
+      <div class="rope-track">
+        <div class="rope" id="rope">
+          <div class="rope-segment" id="rope-marker"></div>
+        </div>
+        <div class="flag" id="rope-flag">🏁</div>
+      </div>
+    </div>
+
+    <!-- P2 side -->
+    <div class="player-side side-right" id="side-p2">
+      <div class="player-name" id="name-p2">Blue Bot</div>
+      <div class="score-display"><span id="score-p2">0</span><span class="score-label"> correct</span></div>
+      <div class="progress-pips" id="pips-p2"></div>
+      <div class="robot-wrap" id="robot-p2">
+        <div class="robot flipped" id="robo-p2">
+          <div class="robo-head">
+            <div class="robo-eye left"></div>
+            <div class="robo-eye right"></div>
+            <div class="robo-mouth"></div>
+          </div>
+          <div class="robo-body">
+            <div class="robo-arm left-arm"></div>
+            <div class="robo-torso"></div>
+            <div class="robo-arm right-arm"></div>
+          </div>
+          <div class="robo-legs">
+            <div class="robo-leg"></div>
+            <div class="robo-leg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question panels -->
+  <div class="questions-zone">
+    <!-- Player 1 question -->
+    <div class="q-panel" id="q-panel-p1">
+      <div class="q-header">
+        <span class="q-player-tag p1-tag" id="qtag-p1">P1</span>
+        <span class="q-counter" id="qcount-p1">Q 1/12</span>
+        <span class="q-streak" id="streak-p1"></span>
+      </div>
+      <p class="q-text" id="qtext-p1">Loading...</p>
+      <div class="q-options" id="qopts-p1">
+        <button class="opt-btn" data-idx="0"><kbd>1</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="1"><kbd>2</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="2"><kbd>3</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="3"><kbd>4</kbd> <span></span></button>
+      </div>
+      <div class="q-feedback" id="qfeedback-p1"></div>
+    </div>
+
+    <!-- Player 2 question -->
+    <div class="q-panel" id="q-panel-p2">
+      <div class="q-header">
+        <span class="q-player-tag p2-tag" id="qtag-p2">P2</span>
+        <span class="q-counter" id="qcount-p2">Q 1/12</span>
+        <span class="q-streak" id="streak-p2"></span>
+      </div>
+      <p class="q-text" id="qtext-p2">Loading...</p>
+      <div class="q-options" id="qopts-p2">
+        <button class="opt-btn" data-idx="0"><kbd>7</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="1"><kbd>8</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="2"><kbd>9</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="3"><kbd>0</kbd> <span></span></button>
+      </div>
+      <div class="q-feedback" id="qfeedback-p2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WIN SCREEN -->
+<div id="screen-end" class="screen">
+  <div class="end-content">
+    <div class="fireworks" id="fireworks"></div>
+    <div class="win-bot" id="win-bot">🤖</div>
+    <h2 class="win-title" id="win-title">PLAYER 1 WINS!</h2>
+    <p class="win-reason" id="win-reason">First to answer all questions!</p>
+    <div class="final-scores">
+      <div class="final-score-card" id="final-p1">
+        <span class="fs-name" id="fs-name-p1">P1</span>
+        <span class="fs-score" id="fs-score-p1">0/12</span>
+      </div>
+      <div class="final-score-card" id="final-p2">
+        <span class="fs-name" id="fs-name-p2">P2</span>
+        <span class="fs-score" id="fs-score-p2">0/12</span>
+      </div>
+    </div>
+    <button class="btn-start" id="btn-restart">🔄 PLAY AGAIN</button>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
