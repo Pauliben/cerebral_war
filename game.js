@@ -162,11 +162,10 @@ async function doCreateRoom(code, hostName) {
 
 async function hostWatchForReady(code) {
   const { ref, onValue } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
-  let firstFire = true; // onValue always fires immediately with current value — skip it
   const unsub = onValue(ref(fbDb,`rooms/${code}/status`), async snap => {
-    if (firstFire) { firstFire = false; return; } // skip the 'waiting' snapshot on attach
     if (snap.val() === 'ready') {
       unsub();
+      // Flip to 'playing' — this is the signal for both sides to launch
       const { ref:r2, update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
       await update(r2(fbDb,`rooms/${code}`), { status:'playing' });
       await launchGame(code);
@@ -196,8 +195,9 @@ async function doJoinRoom(code, guestName) {
   const snap = await get(ref(fbDb, `rooms/${code}`));
   if (!snap.exists()) throw new Error('Room not found. Check the code.');
   const data = snap.val();
-  // Only hard-block if the game has fully ended
-  if (data.status === 'ended') throw new Error('This game has ended. Ask the host to create a new room.');
+  // Only block if already playing or ended (not waiting/ready)
+  if (data.status === 'playing') throw new Error('Game already in progress. Ask host for a new room.');
+  if (data.status === 'ended')   throw new Error('This game has ended. Ask host for a new room.');
 
   TOTAL_Q   = data.totalQ   || 12;
   TOTAL_SEC = data.totalSec || 100;
@@ -207,7 +207,7 @@ async function doJoinRoom(code, guestName) {
   myPIdx      = 1;
   gameMode    = 'online';
 
-  // Write name and flip status to 'ready' in one atomic update
+  // Write name then flip status — both in one update to minimise listener races
   await update(ref(fbDb, `rooms/${code}`), {
     'players/p2/name': guestName,
     status: 'ready',
@@ -216,15 +216,11 @@ async function doJoinRoom(code, guestName) {
 
 async function guestWatchForPlaying(code) {
   const { ref, onValue } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
-  // Note: DO NOT skip first fire here — status may already be 'playing' if host
-  // responded very fast, so we must react on the first snapshot too.
   const unsub = onValue(ref(fbDb,`rooms/${code}/status`), async snap => {
-    const val = snap.val();
-    if (val === 'playing') {
+    if (snap.val() === 'playing') {
       unsub();
       await launchGame(code);
     }
-    // If still 'ready' or 'waiting', keep listening — host will flip it shortly
   });
 }
 
