@@ -29,7 +29,7 @@
         <span class="mode-desc">Each player on their own<br>device via a room code</span>
       </button>
     </div>
-    <p class="rules-note">12 questions · 100 second timer · First to finish or most correct wins!</p>
+    <p class="rules-note">First to finish or most correct when time runs out wins!</p>
   </div>
 </div>
 
@@ -40,6 +40,7 @@
     <button class="btn-back" id="btn-back-local">← Back</button>
     <h2 class="setup-title">⌨️ Same Screen Battle</h2>
     <p class="game-subtitle">Sit side-by-side and use keyboard keys</p>
+
     <div class="player-setup">
       <div class="player-card" data-player="1">
         <div class="player-bot">🤖</div>
@@ -55,6 +56,38 @@
         <div class="controls-hint">Answer: <kbd>7</kbd><kbd>8</kbd><kbd>9</kbd><kbd>0</kbd></div>
       </div>
     </div>
+
+    <!-- Settings -->
+    <div class="settings-row">
+      <div class="setting-group">
+        <label class="setting-label">❓ Questions</label>
+        <select id="local-q-count" class="setting-select">
+          <option value="5">5 questions</option>
+          <option value="10">10 questions</option>
+          <option value="12" selected>12 questions</option>
+          <option value="15">15 questions</option>
+          <option value="20">20 questions</option>
+          <option value="25">25 questions</option>
+          <option value="30">30 questions</option>
+          <option value="40">40 questions</option>
+          <option value="50">50 questions</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <label class="setting-label">⏱ Time Limit</label>
+        <select id="local-time-limit" class="setting-select">
+          <option value="30">30 seconds</option>
+          <option value="60">60 seconds</option>
+          <option value="100" selected>100 seconds</option>
+          <option value="120">2 minutes</option>
+          <option value="180">3 minutes</option>
+          <option value="300">5 minutes</option>
+          <option value="600">10 minutes</option>
+          <option value="99999">No limit</option>
+        </select>
+      </div>
+    </div>
+
     <button class="btn-start" id="btn-start-local">⚡ START BATTLE</button>
   </div>
 </div>
@@ -66,27 +99,27 @@
     <button class="btn-back" id="btn-back-online">← Back</button>
     <h2 class="setup-title">🌐 Online Multiplayer</h2>
 
-    <!-- Step 1: Firebase config (shown only when not configured) -->
+    <!-- Firebase config (shown only when not configured) -->
     <div id="firebase-config-section">
       <p class="config-intro">
         Online mode uses <strong>Firebase Realtime Database</strong> (free) to sync the battle live.<br>
-        Paste your project config below — it's stored only in your browser.
+        Paste your project config below — stored only in your browser.
       </p>
       <div class="firebase-form">
-        <div class="fb-field"><label>API Key</label><input id="fb-apiKey" type="text" placeholder="AIzaSy..." /></div>
+        <div class="fb-field"><label>API Key</label><input id="fb-apiKey" type="text" placeholder="AIzaSy…" /></div>
         <div class="fb-field"><label>Auth Domain</label><input id="fb-authDomain" type="text" placeholder="your-app.firebaseapp.com" /></div>
         <div class="fb-field"><label>Database URL</label><input id="fb-databaseURL" type="text" placeholder="https://your-app-default-rtdb.firebaseio.com" /></div>
         <div class="fb-field"><label>Project ID</label><input id="fb-projectId" type="text" placeholder="your-app-id" /></div>
       </div>
       <details class="fb-help">
-        <summary>🔧 How to get your Firebase config (3 min setup)</summary>
+        <summary>🔧 How to get your Firebase config (3 min)</summary>
         <ol>
           <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
-          <li>Click <strong>Add project</strong> → give it any name → Continue</li>
-          <li>In the project dashboard, click the <strong>&lt;/&gt;</strong> (Web) icon to register a web app</li>
-          <li>Copy the values from <code>firebaseConfig</code> into the fields above</li>
-          <li>In the left sidebar go to <strong>Build → Realtime Database → Create database</strong></li>
-          <li>Choose any region → Start in <em>test mode</em> (allows read/write)</li>
+          <li>Click <strong>Add project</strong> → any name → Continue</li>
+          <li>In the dashboard click the <strong>&lt;/&gt;</strong> Web icon → register app</li>
+          <li>Copy values from <code>firebaseConfig</code> into the fields above</li>
+          <li>Sidebar: <strong>Build → Realtime Database → Create database</strong></li>
+          <li>Choose any region → <strong>Start in test mode</strong> → Enable</li>
           <li>Come back here and click Save!</li>
         </ol>
       </details>
@@ -94,13 +127,45 @@
       <p class="config-error" id="config-error"></p>
     </div>
 
-    <!-- Step 2: Lobby (shown after Firebase is ready) -->
+    <!-- Lobby (shown after Firebase is ready) -->
     <div id="lobby-section" style="display:none">
+
+      <!-- Settings (host sets these; guest reads them from room) -->
+      <div class="settings-row settings-row-online" id="host-settings">
+        <div class="setting-group">
+          <label class="setting-label">❓ Questions (host sets)</label>
+          <select id="online-q-count" class="setting-select">
+            <option value="5">5 questions</option>
+            <option value="10">10 questions</option>
+            <option value="12" selected>12 questions</option>
+            <option value="15">15 questions</option>
+            <option value="20">20 questions</option>
+            <option value="25">25 questions</option>
+            <option value="30">30 questions</option>
+            <option value="40">40 questions</option>
+            <option value="50">50 questions</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label class="setting-label">⏱ Time Limit (host sets)</label>
+          <select id="online-time-limit" class="setting-select">
+            <option value="30">30 seconds</option>
+            <option value="60">60 seconds</option>
+            <option value="100" selected>100 seconds</option>
+            <option value="120">2 minutes</option>
+            <option value="180">3 minutes</option>
+            <option value="300">5 minutes</option>
+            <option value="600">10 minutes</option>
+            <option value="99999">No limit</option>
+          </select>
+        </div>
+      </div>
+
       <div class="lobby-wrap">
         <div class="lobby-card">
           <div class="lobby-card-icon">🏠</div>
           <h3>Create Room</h3>
-          <p>Start a room and share the code with your opponent</p>
+          <p>Start a room and share the code with your opponent.<br>Settings above apply to this room.</p>
           <input id="host-name" type="text" placeholder="Your name" maxlength="12" />
           <button class="btn-start btn-sm" id="btn-create-room">Create Room</button>
         </div>
@@ -108,7 +173,7 @@
         <div class="lobby-card">
           <div class="lobby-card-icon">🚪</div>
           <h3>Join Room</h3>
-          <p>Enter your name and the room code your opponent shared</p>
+          <p>Enter your name and the room code.<br>Settings are set by the host.</p>
           <input id="joiner-name" type="text" placeholder="Your name" maxlength="12" />
           <input id="join-code" class="code-input" type="text" placeholder="ROOM CODE" maxlength="6" />
           <button class="btn-start btn-sm btn-blue" id="btn-join-room">Join Room</button>
@@ -127,11 +192,11 @@
     <div class="waiting-bot">🤖</div>
     <h2 class="waiting-title">Room Ready!</h2>
     <p class="waiting-sub">Share this code with your opponent:</p>
-    <div class="room-code-display" id="room-code-display">----</div>
-    <p class="waiting-hint">They visit the same URL and click <strong>Join Room</strong></p>
-    <p class="waiting-status" id="waiting-status">⏳ Waiting for opponent...</p>
+    <div class="room-code-display" id="room-code-display">-----</div>
+    <p class="waiting-hint">They visit the same URL → click <strong>Online Multiplayer</strong> → <strong>Join Room</strong></p>
+    <p class="waiting-status" id="waiting-status">⏳ Waiting for opponent…</p>
     <div class="waiting-spinner"></div>
-    <button class="btn-back btn-cancel" id="btn-cancel-room">✕ Cancel</button>
+    <button class="btn-cancel" id="btn-cancel-room">✕ Cancel</button>
   </div>
 </div>
 
@@ -179,14 +244,13 @@
   </div>
 
   <div class="questions-zone" id="questions-zone">
-    <!-- Player 1 panel -->
     <div class="q-panel" id="q-panel-p1">
       <div class="q-header">
         <span class="q-player-tag p1-tag" id="qtag-p1">P1</span>
         <span class="q-counter" id="qcount-p1">Q 1/12</span>
         <span class="q-streak" id="streak-p1"></span>
       </div>
-      <p class="q-text" id="qtext-p1">Loading...</p>
+      <p class="q-text" id="qtext-p1">Loading…</p>
       <div class="q-options" id="qopts-p1">
         <button class="opt-btn" data-idx="0"><kbd>1</kbd><span></span></button>
         <button class="opt-btn" data-idx="1"><kbd>2</kbd><span></span></button>
@@ -195,14 +259,13 @@
       </div>
       <div class="q-feedback" id="qfeedback-p1"></div>
     </div>
-    <!-- Player 2 panel -->
     <div class="q-panel" id="q-panel-p2">
       <div class="q-header">
         <span class="q-player-tag p2-tag" id="qtag-p2">P2</span>
         <span class="q-counter" id="qcount-p2">Q 1/12</span>
         <span class="q-streak" id="streak-p2"></span>
       </div>
-      <p class="q-text" id="qtext-p2">Loading...</p>
+      <p class="q-text" id="qtext-p2">Loading…</p>
       <div class="q-options" id="qopts-p2">
         <button class="opt-btn" data-idx="0"><kbd>7</kbd><span></span></button>
         <button class="opt-btn" data-idx="1"><kbd>8</kbd><span></span></button>
