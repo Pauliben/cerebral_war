@@ -113,10 +113,12 @@ $('btn-reset-config').onclick = () => { localStorage.removeItem(FB_KEY); fbDb=nu
 
 async function connectFirebase(cfg) {
   const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-  const { getDatabase, ref, get }          = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  const { getDatabase } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
   if (!getApps().length) initializeApp(cfg);
+  // getDatabase() throws synchronously if the databaseURL is malformed
   fbDb = getDatabase(getApp());
-  await get(ref(fbDb, '.info/connected'));   // throws if config wrong
+  // No network test needed — Firebase SDK validates config format.
+  // Actual connectivity errors will surface on first room read/write.
 }
 
 // ═══════════════════════════════════════════════════════════
