@@ -10,110 +10,176 @@
 </head>
 <body>
 
-<!-- SCREENS -->
+<!-- ══════ SCREEN: TITLE / MODE SELECT ══════ -->
 <div id="screen-start" class="screen active">
   <div class="stars"></div>
   <div class="start-content">
     <div class="logo-bot">🤖</div>
     <h1 class="game-title">ROBO<span>TUG</span></h1>
     <p class="game-subtitle">The Ultimate Robot Quiz Battle</p>
-    <div class="player-setup">
-      <div class="player-card" data-player="1">
-        <div class="player-bot" style="--hue:200">🤖</div>
-        <label>Player 1 Name</label>
-        <input id="p1-name" type="text" placeholder="Red Bot" maxlength="12" />
-        <div class="controls-hint">
-          <span>Answer: <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></span>
-        </div>
-      </div>
-      <div class="vs-badge">VS</div>
-      <div class="player-card" data-player="2">
-        <div class="player-bot" style="--hue:20">🤖</div>
-        <label>Player 2 Name</label>
-        <input id="p2-name" type="text" placeholder="Blue Bot" maxlength="12" />
-        <div class="controls-hint">
-          <span>Answer: <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd></span>
-        </div>
-      </div>
+    <div class="mode-select">
+      <button class="mode-btn mode-local" id="btn-mode-local">
+        <span class="mode-icon">🖥️</span>
+        <span class="mode-label">Same Screen</span>
+        <span class="mode-desc">Both players on one device<br>using keyboard shortcuts</span>
+      </button>
+      <button class="mode-btn mode-online" id="btn-mode-online">
+        <span class="mode-icon">🌐</span>
+        <span class="mode-label">Online Multiplayer</span>
+        <span class="mode-desc">Each player on their own<br>device via a room code</span>
+      </button>
     </div>
-    <button class="btn-start" id="btn-start">⚡ START BATTLE</button>
     <p class="rules-note">12 questions · 100 second timer · First to finish or most correct wins!</p>
   </div>
 </div>
 
+<!-- ══════ SCREEN: LOCAL SETUP ══════ -->
+<div id="screen-local-setup" class="screen">
+  <div class="stars"></div>
+  <div class="start-content">
+    <button class="btn-back" id="btn-back-local">← Back</button>
+    <h2 class="setup-title">⌨️ Same Screen Battle</h2>
+    <p class="game-subtitle">Sit side-by-side and use keyboard keys</p>
+    <div class="player-setup">
+      <div class="player-card" data-player="1">
+        <div class="player-bot">🤖</div>
+        <label>Player 1 Name</label>
+        <input id="p1-name" type="text" placeholder="Red Bot" maxlength="12" />
+        <div class="controls-hint">Answer: <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd></div>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="player-card" data-player="2">
+        <div class="player-bot">🤖</div>
+        <label>Player 2 Name</label>
+        <input id="p2-name" type="text" placeholder="Blue Bot" maxlength="12" />
+        <div class="controls-hint">Answer: <kbd>7</kbd><kbd>8</kbd><kbd>9</kbd><kbd>0</kbd></div>
+      </div>
+    </div>
+    <button class="btn-start" id="btn-start-local">⚡ START BATTLE</button>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: ONLINE SETUP ══════ -->
+<div id="screen-online-setup" class="screen">
+  <div class="stars"></div>
+  <div class="start-content online-setup-content">
+    <button class="btn-back" id="btn-back-online">← Back</button>
+    <h2 class="setup-title">🌐 Online Multiplayer</h2>
+
+    <!-- Step 1: Firebase config (shown only when not configured) -->
+    <div id="firebase-config-section">
+      <p class="config-intro">
+        Online mode uses <strong>Firebase Realtime Database</strong> (free) to sync the battle live.<br>
+        Paste your project config below — it's stored only in your browser.
+      </p>
+      <div class="firebase-form">
+        <div class="fb-field"><label>API Key</label><input id="fb-apiKey" type="text" placeholder="AIzaSy..." /></div>
+        <div class="fb-field"><label>Auth Domain</label><input id="fb-authDomain" type="text" placeholder="your-app.firebaseapp.com" /></div>
+        <div class="fb-field"><label>Database URL</label><input id="fb-databaseURL" type="text" placeholder="https://your-app-default-rtdb.firebaseio.com" /></div>
+        <div class="fb-field"><label>Project ID</label><input id="fb-projectId" type="text" placeholder="your-app-id" /></div>
+      </div>
+      <details class="fb-help">
+        <summary>🔧 How to get your Firebase config (3 min setup)</summary>
+        <ol>
+          <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
+          <li>Click <strong>Add project</strong> → give it any name → Continue</li>
+          <li>In the project dashboard, click the <strong>&lt;/&gt;</strong> (Web) icon to register a web app</li>
+          <li>Copy the values from <code>firebaseConfig</code> into the fields above</li>
+          <li>In the left sidebar go to <strong>Build → Realtime Database → Create database</strong></li>
+          <li>Choose any region → Start in <em>test mode</em> (allows read/write)</li>
+          <li>Come back here and click Save!</li>
+        </ol>
+      </details>
+      <button class="btn-start btn-config" id="btn-save-config">💾 Save &amp; Connect</button>
+      <p class="config-error" id="config-error"></p>
+    </div>
+
+    <!-- Step 2: Lobby (shown after Firebase is ready) -->
+    <div id="lobby-section" style="display:none">
+      <div class="lobby-wrap">
+        <div class="lobby-card">
+          <div class="lobby-card-icon">🏠</div>
+          <h3>Create Room</h3>
+          <p>Start a room and share the code with your opponent</p>
+          <input id="host-name" type="text" placeholder="Your name" maxlength="12" />
+          <button class="btn-start btn-sm" id="btn-create-room">Create Room</button>
+        </div>
+        <div class="lobby-divider">OR</div>
+        <div class="lobby-card">
+          <div class="lobby-card-icon">🚪</div>
+          <h3>Join Room</h3>
+          <p>Enter your name and the room code your opponent shared</p>
+          <input id="joiner-name" type="text" placeholder="Your name" maxlength="12" />
+          <input id="join-code" class="code-input" type="text" placeholder="ROOM CODE" maxlength="6" />
+          <button class="btn-start btn-sm btn-blue" id="btn-join-room">Join Room</button>
+        </div>
+      </div>
+      <p class="config-error" id="lobby-error"></p>
+      <button class="btn-reset-config" id="btn-reset-config">⚙️ Change Firebase Config</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: WAITING FOR OPPONENT ══════ -->
+<div id="screen-waiting" class="screen">
+  <div class="stars"></div>
+  <div class="waiting-content">
+    <div class="waiting-bot">🤖</div>
+    <h2 class="waiting-title">Room Ready!</h2>
+    <p class="waiting-sub">Share this code with your opponent:</p>
+    <div class="room-code-display" id="room-code-display">----</div>
+    <p class="waiting-hint">They visit the same URL and click <strong>Join Room</strong></p>
+    <p class="waiting-status" id="waiting-status">⏳ Waiting for opponent...</p>
+    <div class="waiting-spinner"></div>
+    <button class="btn-back btn-cancel" id="btn-cancel-room">✕ Cancel</button>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: GAME ══════ -->
 <div id="screen-game" class="screen">
-  <!-- Timer bar -->
   <div class="timer-bar-wrap">
     <div class="timer-bar" id="timer-bar"></div>
     <span class="timer-text" id="timer-text">100</span>
+    <span class="online-badge" id="online-badge" style="display:none">🌐 LIVE</span>
   </div>
 
-  <!-- Arena -->
   <div class="arena">
-    <!-- P1 side -->
-    <div class="player-side side-left" id="side-p1">
+    <div class="player-side side-left">
       <div class="player-name" id="name-p1">Red Bot</div>
       <div class="score-display"><span id="score-p1">0</span><span class="score-label"> correct</span></div>
       <div class="progress-pips" id="pips-p1"></div>
-      <div class="robot-wrap" id="robot-p1">
+      <div class="robot-wrap">
         <div class="robot" id="robo-p1">
-          <div class="robo-head">
-            <div class="robo-eye left"></div>
-            <div class="robo-eye right"></div>
-            <div class="robo-mouth"></div>
-          </div>
-          <div class="robo-body">
-            <div class="robo-arm left-arm"></div>
-            <div class="robo-torso"></div>
-            <div class="robo-arm right-arm"></div>
-          </div>
-          <div class="robo-legs">
-            <div class="robo-leg"></div>
-            <div class="robo-leg"></div>
-          </div>
+          <div class="robo-head"><div class="robo-eye left"></div><div class="robo-eye right"></div><div class="robo-mouth"></div></div>
+          <div class="robo-body"><div class="robo-arm left-arm"></div><div class="robo-torso"></div><div class="robo-arm right-arm"></div></div>
+          <div class="robo-legs"><div class="robo-leg"></div><div class="robo-leg"></div></div>
         </div>
       </div>
     </div>
 
-    <!-- Rope -->
     <div class="rope-zone">
       <div class="rope-track">
-        <div class="rope" id="rope">
-          <div class="rope-segment" id="rope-marker"></div>
-        </div>
+        <div class="rope" id="rope"><div class="rope-segment" id="rope-marker"></div></div>
         <div class="flag" id="rope-flag">🏁</div>
       </div>
     </div>
 
-    <!-- P2 side -->
-    <div class="player-side side-right" id="side-p2">
+    <div class="player-side side-right">
       <div class="player-name" id="name-p2">Blue Bot</div>
       <div class="score-display"><span id="score-p2">0</span><span class="score-label"> correct</span></div>
       <div class="progress-pips" id="pips-p2"></div>
-      <div class="robot-wrap" id="robot-p2">
+      <div class="robot-wrap">
         <div class="robot flipped" id="robo-p2">
-          <div class="robo-head">
-            <div class="robo-eye left"></div>
-            <div class="robo-eye right"></div>
-            <div class="robo-mouth"></div>
-          </div>
-          <div class="robo-body">
-            <div class="robo-arm left-arm"></div>
-            <div class="robo-torso"></div>
-            <div class="robo-arm right-arm"></div>
-          </div>
-          <div class="robo-legs">
-            <div class="robo-leg"></div>
-            <div class="robo-leg"></div>
-          </div>
+          <div class="robo-head"><div class="robo-eye left"></div><div class="robo-eye right"></div><div class="robo-mouth"></div></div>
+          <div class="robo-body"><div class="robo-arm left-arm"></div><div class="robo-torso"></div><div class="robo-arm right-arm"></div></div>
+          <div class="robo-legs"><div class="robo-leg"></div><div class="robo-leg"></div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Question panels -->
-  <div class="questions-zone">
-    <!-- Player 1 question -->
+  <div class="questions-zone" id="questions-zone">
+    <!-- Player 1 panel -->
     <div class="q-panel" id="q-panel-p1">
       <div class="q-header">
         <span class="q-player-tag p1-tag" id="qtag-p1">P1</span>
@@ -122,15 +188,14 @@
       </div>
       <p class="q-text" id="qtext-p1">Loading...</p>
       <div class="q-options" id="qopts-p1">
-        <button class="opt-btn" data-idx="0"><kbd>1</kbd> <span></span></button>
-        <button class="opt-btn" data-idx="1"><kbd>2</kbd> <span></span></button>
-        <button class="opt-btn" data-idx="2"><kbd>3</kbd> <span></span></button>
-        <button class="opt-btn" data-idx="3"><kbd>4</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="0"><kbd>1</kbd><span></span></button>
+        <button class="opt-btn" data-idx="1"><kbd>2</kbd><span></span></button>
+        <button class="opt-btn" data-idx="2"><kbd>3</kbd><span></span></button>
+        <button class="opt-btn" data-idx="3"><kbd>4</kbd><span></span></button>
       </div>
       <div class="q-feedback" id="qfeedback-p1"></div>
     </div>
-
-    <!-- Player 2 question -->
+    <!-- Player 2 panel -->
     <div class="q-panel" id="q-panel-p2">
       <div class="q-header">
         <span class="q-player-tag p2-tag" id="qtag-p2">P2</span>
@@ -139,17 +204,17 @@
       </div>
       <p class="q-text" id="qtext-p2">Loading...</p>
       <div class="q-options" id="qopts-p2">
-        <button class="opt-btn" data-idx="0"><kbd>7</kbd> <span></span></button>
-        <button class="opt-btn" data-idx="1"><kbd>8</kbd> <span></span></button>
-        <button class="opt-btn" data-idx="2"><kbd>9</kbd> <span></span></button>
-        <button class="opt-btn" data-idx="3"><kbd>0</kbd> <span></span></button>
+        <button class="opt-btn" data-idx="0"><kbd>7</kbd><span></span></button>
+        <button class="opt-btn" data-idx="1"><kbd>8</kbd><span></span></button>
+        <button class="opt-btn" data-idx="2"><kbd>9</kbd><span></span></button>
+        <button class="opt-btn" data-idx="3"><kbd>0</kbd><span></span></button>
       </div>
       <div class="q-feedback" id="qfeedback-p2"></div>
     </div>
   </div>
 </div>
 
-<!-- WIN SCREEN -->
+<!-- ══════ SCREEN: END ══════ -->
 <div id="screen-end" class="screen">
   <div class="end-content">
     <div class="fireworks" id="fireworks"></div>
@@ -157,14 +222,8 @@
     <h2 class="win-title" id="win-title">PLAYER 1 WINS!</h2>
     <p class="win-reason" id="win-reason">First to answer all questions!</p>
     <div class="final-scores">
-      <div class="final-score-card" id="final-p1">
-        <span class="fs-name" id="fs-name-p1">P1</span>
-        <span class="fs-score" id="fs-score-p1">0/12</span>
-      </div>
-      <div class="final-score-card" id="final-p2">
-        <span class="fs-name" id="fs-name-p2">P2</span>
-        <span class="fs-score" id="fs-score-p2">0/12</span>
-      </div>
+      <div class="final-score-card" id="final-p1"><span class="fs-name" id="fs-name-p1">P1</span><span class="fs-score" id="fs-score-p1">0/12</span></div>
+      <div class="final-score-card" id="final-p2"><span class="fs-name" id="fs-name-p2">P2</span><span class="fs-score" id="fs-score-p2">0/12</span></div>
     </div>
     <button class="btn-start" id="btn-restart">🔄 PLAY AGAIN</button>
   </div>

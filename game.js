@@ -1,413 +1,692 @@
 // ============================================================
-// game.js — Robo Tug of War Quiz Game Logic
+// game.js — Robo Tug of War v2
+// Supports: Local (same screen) + Online (Firebase)
 // ============================================================
 
-const TOTAL_QUESTIONS = 12;
-const TOTAL_TIME = 100; // seconds
+'use strict';
 
-// ── State ────────────────────────────────────────────────────
-let gameState = null;
-let timerInterval = null;
-let timeLeft = TOTAL_TIME;
+// ── Constants ────────────────────────────────────────────────
+const TOTAL_Q   = 12;
+const TOTAL_SEC = 100;
+const FB_STORAGE_KEY = 'robotug_firebase_config';
 
-// ── DOM refs ─────────────────────────────────────────────────
+// ── DOM helpers ──────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const screens = {
-  start: $('screen-start'),
-  game:  $('screen-game'),
-  end:   $('screen-end'),
-};
+const screens = ['start','local-setup','online-setup','waiting','game','end']
+  .reduce((o,n) => { o[n] = $('screen-'+n); return o; }, {});
 
-// ── Show screen ───────────────────────────────────────────────
 function showScreen(name) {
-  Object.values(screens).forEach(s => {
-    s.classList.remove('active', 'fade-in');
-    s.style.display = 'none';
-  });
+  Object.values(screens).forEach(s => { s.style.display='none'; s.classList.remove('active'); });
   const s = screens[name];
   s.style.display = 'flex';
-  requestAnimationFrame(() => {
-    s.classList.add('active', 'fade-in');
-  });
+  requestAnimationFrame(() => s.classList.add('active'));
 }
 
-// ── Init game ─────────────────────────────────────────────────
-function initGame() {
+// ── Mode tracking ────────────────────────────────────────────
+let gameMode     = null;  // 'local' | 'online'
+let onlineRole   = null;  // 'host' | 'guest'
+let myPlayerIdx  = null;  // 0 = P1, 1 = P2  (online only)
+let roomRef      = null;  // Firebase DB ref
+let fbDatabase   = null;  // Firebase database instance
+let fbApp        = null;
+
+// ── Game state (local authority in local mode; shared via Firebase online) ──
+let gs           = null;
+let timerInterval = null;
+let timeLeft     = TOTAL_SEC;
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+
+$('btn-mode-local').onclick  = () => showScreen('local-setup');
+$('btn-mode-online').onclick = () => {
+  showScreen('online-setup');
+  initOnlineSetup();
+};
+$('btn-back-local').onclick  = () => showScreen('start');
+$('btn-back-online').onclick = () => showScreen('start');
+
+// ═══════════════════════════════════════════════════════════
+//  LOCAL MODE
+// ═══════════════════════════════════════════════════════════
+
+$('btn-start-local').onclick = startLocalGame;
+$('p1-name').addEventListener('keydown', e => { if(e.key==='Enter') startLocalGame(); });
+$('p2-name').addEventListener('keydown', e => { if(e.key==='Enter') startLocalGame(); });
+
+function startLocalGame() {
+  gameMode = 'local';
   const p1name = $('p1-name').value.trim() || 'Red Bot';
   const p2name = $('p2-name').value.trim() || 'Blue Bot';
 
-  // Each player gets independently shuffled questions from the same pool
-  const pool = loadQuestions(); // from questions.js
-  const p1Qs = shuffleArray([...pool]);
-  const p2Qs = shuffleArray([...pool]);
-
-  gameState = {
+  const pool = loadQuestions();
+  gs = {
     players: [
-      {
-        id: 1, name: p1name,
-        questions: p1Qs,
-        qIndex: 0,
-        score: 0,
-        streak: 0,
-        done: false,
-        locked: false, // locked briefly after answering
-      },
-      {
-        id: 2, name: p2name,
-        questions: p2Qs,
-        qIndex: 0,
-        score: 0,
-        streak: 0,
-        done: false,
-        locked: false,
-      }
+      { id:1, name:p1name, questions: shuffleArr([...pool]), qIndex:0, score:0, streak:0, done:false, locked:false },
+      { id:2, name:p2name, questions: shuffleArr([...pool]), qIndex:0, score:0, streak:0, done:false, locked:false },
     ],
-    ropePos: 50, // 0=p1 wins, 100=p2 wins
+    ropePos: 50,
     gameOver: false,
   };
 
-  // Set names
-  $('name-p1').textContent = p1name;
-  $('name-p2').textContent = p2name;
-  $('qtag-p1').textContent = p1name.substring(0, 6);
-  $('qtag-p2').textContent = p2name.substring(0, 6);
+  $('online-badge').style.display = 'none';
+  renderGameScreen('local');
+  showScreen('game');
+  startTimer();
+}
 
-  // Init pips
-  initPips('pips-p1', 1);
-  initPips('pips-p2', 2);
+// ═══════════════════════════════════════════════════════════
+//  ONLINE SETUP — Firebase
+// ═══════════════════════════════════════════════════════════
 
-  // Init scores
+function initOnlineSetup() {
+  const saved = loadFbConfig();
+  if (saved) {
+    showLobby();
+    connectFirebase(saved).catch(() => {
+      showConfigForm();
+      $('config-error').textContent = '⚠️ Could not connect with saved config. Please re-enter.';
+    });
+  } else {
+    showConfigForm();
+  }
+}
+
+function showConfigForm() {
+  $('firebase-config-section').style.display = 'block';
+  $('lobby-section').style.display = 'none';
+}
+function showLobby() {
+  $('firebase-config-section').style.display = 'none';
+  $('lobby-section').style.display = 'block';
+}
+
+$('btn-save-config').onclick = async () => {
+  const cfg = {
+    apiKey:      $('fb-apiKey').value.trim(),
+    authDomain:  $('fb-authDomain').value.trim(),
+    databaseURL: $('fb-databaseURL').value.trim(),
+    projectId:   $('fb-projectId').value.trim(),
+  };
+  if (!cfg.apiKey || !cfg.databaseURL) {
+    $('config-error').textContent = '⚠️ API Key and Database URL are required.'; return;
+  }
+  $('config-error').textContent = 'Connecting…';
+  try {
+    await connectFirebase(cfg);
+    saveFbConfig(cfg);
+    $('config-error').textContent = '';
+    showLobby();
+  } catch(e) {
+    $('config-error').textContent = '✗ Connection failed: ' + e.message;
+  }
+};
+
+$('btn-reset-config').onclick = () => {
+  localStorage.removeItem(FB_STORAGE_KEY);
+  fbApp = null; fbDatabase = null;
+  showConfigForm();
+};
+
+// ── Firebase connect (dynamic import of Firebase SDK) ───────
+async function connectFirebase(cfg) {
+  // Dynamically load Firebase from CDN
+  const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+  const { getDatabase } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+
+  if (!getApps().length) {
+    fbApp = initializeApp(cfg);
+  } else {
+    fbApp = getApp();
+  }
+  fbDatabase = getDatabase(fbApp);
+  // Quick connectivity test — just having the db object is enough; errors surface on first read/write
+}
+
+// ── Create room ──────────────────────────────────────────────
+$('btn-create-room').onclick = async () => {
+  const name = $('host-name').value.trim() || 'Red Bot';
+  $('lobby-error').textContent = '';
+  const code = genRoomCode();
+  try {
+    await createRoom(code, name);
+    $('room-code-display').textContent = code;
+    $('waiting-status').textContent = '⏳ Waiting for opponent to join…';
+    showScreen('waiting');
+    listenForGuest(code);
+  } catch(e) {
+    $('lobby-error').textContent = '✗ Could not create room: ' + e.message;
+  }
+};
+
+// ── Join room ────────────────────────────────────────────────
+$('btn-join-room').onclick = async () => {
+  const name = $('joiner-name').value.trim() || 'Blue Bot';
+  const code = $('join-code').value.trim().toUpperCase();
+  $('lobby-error').textContent = '';
+  if (!code) { $('lobby-error').textContent = '⚠️ Enter a room code.'; return; }
+  try {
+    await joinRoom(code, name);
+  } catch(e) {
+    $('lobby-error').textContent = '✗ ' + e.message;
+  }
+};
+
+$('btn-cancel-room').onclick = async () => {
+  if (roomRef) {
+    try {
+      const { remove } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+      await remove(roomRef);
+    } catch(_) {}
+    roomRef = null;
+  }
+  showScreen('online-setup');
+};
+
+// ── Firebase room helpers ────────────────────────────────────
+async function createRoom(code, hostName) {
+  const { ref, set } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  const pool = loadQuestions();
+  const p1Qs = shuffleArr([...pool]);
+  const p2Qs = shuffleArr([...pool]);
+
+  roomRef = ref(fbDatabase, `rooms/${code}`);
+  const roomData = {
+    status: 'waiting',
+    createdAt: Date.now(),
+    ropePos: 50,
+    gameOver: false,
+    players: {
+      p1: { name: hostName, score: 0, qIndex: 0, streak: 0, done: false,
+            questions: p1Qs.map(q => ({ q:q.q, options:q.options, answer:q.answer })) },
+      p2: { name: '', score: 0, qIndex: 0, streak: 0, done: false,
+            questions: p2Qs.map(q => ({ q:q.q, options:q.options, answer:q.answer })) },
+    },
+    timer: { start: null, running: false },
+  };
+  await set(roomRef, roomData);
+  onlineRole  = 'host';
+  myPlayerIdx = 0;
+  gameMode    = 'online';
+}
+
+async function joinRoom(code, guestName) {
+  const { ref, get, update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  const snap = await get(ref(fbDatabase, `rooms/${code}`));
+  if (!snap.exists()) throw new Error('Room not found. Check the code and try again.');
+  const data = snap.val();
+  if (data.status !== 'waiting') throw new Error('Room is already in progress or has ended.');
+
+  roomRef     = ref(fbDatabase, `rooms/${code}`);
+  onlineRole  = 'guest';
+  myPlayerIdx = 1;
+  gameMode    = 'online';
+
+  await update(ref(fbDatabase, `rooms/${code}/players/p2`), { name: guestName });
+  await update(ref(fbDatabase, `rooms/${code}`), { status: 'ready' });
+}
+
+// ── Host waits for guest, then starts ────────────────────────
+async function listenForGuest(code) {
+  const { ref, onValue } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  const statusRef = ref(fbDatabase, `rooms/${code}/status`);
+  const unsub = onValue(statusRef, async snap => {
+    if (snap.val() === 'ready') {
+      unsub(); // stop listening
+      await startOnlineGame(code);
+    }
+  });
+}
+
+// ── Start online game ────────────────────────────────────────
+async function startOnlineGame(code) {
+  const { ref, get, update, onValue } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+
+  const snap = await get(ref(fbDatabase, `rooms/${code}`));
+  const data = snap.val();
+
+  // Build local gs from Firebase data
+  gs = {
+    players: [
+      { name: data.players.p1.name, questions: data.players.p1.questions,
+        qIndex: data.players.p1.qIndex, score: data.players.p1.score,
+        streak: data.players.p1.streak, done: data.players.p1.done, locked: false },
+      { name: data.players.p2.name, questions: data.players.p2.questions,
+        qIndex: data.players.p2.qIndex, score: data.players.p2.score,
+        streak: data.players.p2.streak, done: data.players.p2.done, locked: false },
+    ],
+    ropePos:  data.ropePos,
+    gameOver: data.gameOver,
+  };
+
+  // Mark game started
+  const now = Date.now();
+  await update(roomRef, { status: 'playing', 'timer/start': now, 'timer/running': true });
+
+  $('online-badge').style.display = 'inline';
+  renderGameScreen('online');
+  showScreen('game');
+
+  // Start local timer
+  timeLeft = TOTAL_SEC;
+  startTimer();
+
+  // Subscribe to remote changes
+  onValue(roomRef, snap => {
+    if (!snap.exists()) return;
+    const remote = snap.val();
+    handleRemoteUpdate(remote);
+  });
+}
+
+// ── Handle Firebase updates on both clients ──────────────────
+function handleRemoteUpdate(remote) {
+  if (!gs || gs.gameOver) return;
+
+  const theirIdx = myPlayerIdx === 0 ? 1 : 0;
+  const theirKey = theirIdx === 0 ? 'p1' : 'p2';
+  const remotePlyr = remote.players[theirKey];
+
+  // Sync opponent's state into local gs
+  gs.players[theirIdx].score   = remotePlyr.score;
+  gs.players[theirIdx].qIndex  = remotePlyr.qIndex;
+  gs.players[theirIdx].streak  = remotePlyr.streak;
+  gs.players[theirIdx].done    = remotePlyr.done;
+
+  // Sync rope from Firebase (authoritative)
+  gs.ropePos = remote.ropePos;
+  updateRope(gs.ropePos);
+
+  // Update opponent score display
+  $(`score-p${theirIdx+1}`).textContent = remotePlyr.score;
+  updatePips(theirIdx, remotePlyr.qIndex, null); // just show progress
+
+  // Check if opponent finished
+  if (remotePlyr.done && !gs.gameOver) {
+    const myP = gs.players[myPlayerIdx];
+    if (myP.done) {
+      triggerEndGame('scores');
+    } else {
+      triggerEndGame('finish', theirIdx);
+    }
+  }
+
+  // Check server-set gameOver
+  if (remote.gameOver && !gs.gameOver) {
+    gs.gameOver = true;
+    clearInterval(timerInterval);
+  }
+}
+
+// ── Push my answer result to Firebase ────────────────────────
+async function pushMyStateToFirebase(myP) {
+  if (!roomRef) return;
+  const { update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  const myKey = myPlayerIdx === 0 ? 'p1' : 'p2';
+  await update(roomRef, {
+    [`players/${myKey}/score`]:  myP.score,
+    [`players/${myKey}/qIndex`]: myP.qIndex,
+    [`players/${myKey}/streak`]: myP.streak,
+    [`players/${myKey}/done`]:   myP.done,
+    ropePos: gs.ropePos,
+  });
+}
+
+async function pushGameOver() {
+  if (!roomRef) return;
+  const { update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+  await update(roomRef, { gameOver: true });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER GAME SCREEN
+// ═══════════════════════════════════════════════════════════
+
+function renderGameScreen(mode) {
+  const p1 = gs.players[0], p2 = gs.players[1];
+
+  $('name-p1').textContent = p1.name;
+  $('name-p2').textContent = p2.name;
+  $('qtag-p1').textContent = p1.name.substring(0,6);
+  $('qtag-p2').textContent = p2.name.substring(0,6);
   $('score-p1').textContent = '0';
   $('score-p2').textContent = '0';
 
-  // Init rope
+  initPips(0); initPips(1);
   updateRope(50);
 
-  // Load first questions
-  loadQuestion(0);
-  loadQuestion(1);
+  // Timer bar reset
+  $('timer-bar').style.width = '100%';
+  $('timer-bar').style.background = '';
+  $('timer-text').style.color = '';
+  $('timer-text').textContent = TOTAL_SEC;
 
-  // Start timer
-  timeLeft = TOTAL_TIME;
-  updateTimerDisplay();
-  timerInterval = setInterval(tickTimer, 1000);
+  if (mode === 'local') {
+    // Show both panels side by side
+    $('q-panel-p1').style.display = 'flex';
+    $('q-panel-p2').style.display = 'flex';
+    $('q-panel-p1').classList.remove('solo');
+    $('q-panel-p2').classList.remove('solo');
+    // Restore keyboard hints
+    setKeyHints('qopts-p1', ['1','2','3','4']);
+    setKeyHints('qopts-p2', ['7','8','9','0']);
+    loadQuestion(0);
+    loadQuestion(1);
 
-  showScreen('game');
-}
+  } else {
+    // Online — show only MY panel full-width, other panel shows as spectator view
+    const myPanel  = `q-panel-p${myPlayerIdx+1}`;
+    const theirPanel = `q-panel-p${(myPlayerIdx===0?1:0)+1}`;
 
-function initPips(containerId, playerNum) {
-  const container = $(containerId);
-  container.innerHTML = '';
-  for (let i = 0; i < TOTAL_QUESTIONS; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'pip';
-    pip.id = `pip-p${playerNum}-${i}`;
-    container.appendChild(pip);
+    $('q-panel-p1').style.display = 'flex';
+    $('q-panel-p2').style.display = 'flex';
+    $(myPanel).classList.add('solo');
+    $(theirPanel).classList.add('waiting-overlay');
+
+    // My panel uses tap/click only (no kbd hints)
+    setKeyHints(`qopts-p${myPlayerIdx+1}`, ['A','B','C','D']);
+    loadQuestion(myPlayerIdx);
+
+    // Opponent panel just shows score/name — questions hidden by overlay
+    const theirIdx = myPlayerIdx === 0 ? 1 : 0;
+    $(  `qtext-p${theirIdx+1}`).textContent = '…';
+    clearOptions(`qopts-p${theirIdx+1}`);
   }
 }
 
-// ── Load question for a player ────────────────────────────────
+function setKeyHints(optsId, keys) {
+  const btns = $(optsId).querySelectorAll('.opt-btn');
+  btns.forEach((btn, i) => {
+    const kbd = btn.querySelector('kbd');
+    if (kbd) kbd.textContent = keys[i] || '';
+  });
+}
+function clearOptions(optsId) {
+  const btns = $(optsId).querySelectorAll('.opt-btn');
+  btns.forEach(btn => { btn.querySelector('span').textContent=''; btn.disabled=true; });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUESTION LOGIC
+// ═══════════════════════════════════════════════════════════
+
+function initPips(pIdx) {
+  const el = $(`pips-p${pIdx+1}`);
+  el.innerHTML = '';
+  for (let i=0; i<TOTAL_Q; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'pip';
+    pip.id = `pip-p${pIdx+1}-${i}`;
+    el.appendChild(pip);
+  }
+}
+
+function updatePips(pIdx, upTo, result) {
+  // result: 'correct'|'wrong'|null (just fill up to index)
+  if (upTo > 0 && result) {
+    const pip = $(`pip-p${pIdx+1}-${upTo-1}`);
+    if (pip) pip.classList.add(result === true ? 'correct' : 'wrong');
+  }
+}
+
 function loadQuestion(pIdx) {
-  const p = gameState.players[pIdx];
-  const suffix = pIdx === 0 ? 'p1' : 'p2';
+  const p = gs.players[pIdx];
+  const sfx = pIdx===0?'p1':'p2';
   const q = p.questions[p.qIndex];
 
-  $(`qcount-${suffix}`).textContent = `Q ${p.qIndex + 1}/${TOTAL_QUESTIONS}`;
-  $(`qtext-${suffix}`).textContent = q.q;
-  $(`qfeedback-${suffix}`).textContent = '';
-  $(`qfeedback-${suffix}`).className = 'q-feedback';
-  $(`streak-${suffix}`).textContent = p.streak >= 3 ? `🔥×${p.streak}` : '';
+  $(`qcount-${sfx}`).textContent = `Q ${p.qIndex+1}/${TOTAL_Q}`;
+  $(`qtext-${sfx}`).textContent  = q.q;
+  $(`qfeedback-${sfx}`).textContent = '';
+  $(`qfeedback-${sfx}`).className = 'q-feedback';
+  $(`streak-${sfx}`).textContent  = p.streak >= 3 ? `🔥×${p.streak}` : '';
 
-  const optsEl = $(`qopts-${suffix}`);
-  const btns = optsEl.querySelectorAll('.opt-btn');
+  const btns = $(`qopts-${sfx}`).querySelectorAll('.opt-btn');
   btns.forEach((btn, i) => {
     btn.querySelector('span').textContent = q.options[i];
     btn.className = 'opt-btn';
-    btn.disabled = false;
-    btn.onclick = () => handleAnswer(pIdx, i);
+    btn.disabled  = false;
+    btn.onclick   = () => handleAnswer(pIdx, i);
   });
 
-  $(`q-panel-${suffix}`).classList.remove('done-panel', 'correct-flash', 'wrong-flash');
+  $(`q-panel-${sfx}`).classList.remove('done-panel','correct-flash','wrong-flash');
 }
 
-// ── Handle answer ─────────────────────────────────────────────
 function handleAnswer(pIdx, chosenIdx) {
-  const p = gameState.players[pIdx];
-  if (p.done || p.locked || gameState.gameOver) return;
+  // In online mode, only allow answering for your own panel
+  if (gameMode === 'online' && pIdx !== myPlayerIdx) return;
+
+  const p = gs.players[pIdx];
+  if (p.done || p.locked || gs.gameOver) return;
 
   p.locked = true;
   const q = p.questions[p.qIndex];
-  const suffix = pIdx === 0 ? 'p1' : 'p2';
-  const isCorrect = chosenIdx === q.answer;
+  const sfx = pIdx===0?'p1':'p2';
+  const correct = chosenIdx === q.answer;
 
-  const optsEl = $(`qopts-${suffix}`);
-  const btns = optsEl.querySelectorAll('.opt-btn');
-
-  // Highlight answer
+  const btns = $(`qopts-${sfx}`).querySelectorAll('.opt-btn');
   btns.forEach((btn, i) => {
     btn.disabled = true;
-    if (i === q.answer) btn.classList.add('correct-ans');
-    if (i === chosenIdx && !isCorrect) btn.classList.add('wrong-ans');
+    if (i === q.answer)                btn.classList.add('correct-ans');
+    if (i === chosenIdx && !correct)   btn.classList.add('wrong-ans');
   });
 
-  const pipEl = $(`pip-p${pIdx + 1}-${p.qIndex}`);
+  const pip = $(`pip-p${pIdx+1}-${p.qIndex}`);
 
-  if (isCorrect) {
+  if (correct) {
     p.score++;
     p.streak++;
-    pipEl.classList.add('correct');
-    $(`score-p${pIdx + 1}`).textContent = p.score;
-    $(`qfeedback-${suffix}`).textContent = p.streak >= 3 ? `🔥 On fire! +${p.streak} streak` : '✓ Correct!';
-    $(`qfeedback-${suffix}`).className = 'q-feedback correct';
-    $(`q-panel-${suffix}`).classList.add('correct-flash');
+    pip?.classList.add('correct');
+    $(`score-p${pIdx+1}`).textContent = p.score;
+    $(`qfeedback-${sfx}`).textContent = p.streak >= 3 ? `🔥 On fire! ×${p.streak}` : '✓ Correct!';
+    $(`qfeedback-${sfx}`).className   = 'q-feedback correct';
+    $(`q-panel-${sfx}`).classList.add('correct-flash');
 
-    // Rope moves toward this player
-    const pull = 5 + (p.streak >= 3 ? 2 : 0); // streak bonus
-    gameState.ropePos = pIdx === 0
-      ? Math.max(0, gameState.ropePos - pull)
-      : Math.min(100, gameState.ropePos + pull);
-    updateRope(gameState.ropePos);
-    triggerPullAnimation(pIdx);
+    const pull = 5 + (p.streak >= 3 ? 2 : 0);
+    gs.ropePos = pIdx===0
+      ? Math.max(0,  gs.ropePos - pull)
+      : Math.min(100, gs.ropePos + pull);
+    updateRope(gs.ropePos);
+    triggerPullAnim(pIdx);
   } else {
     p.streak = 0;
-    pipEl.classList.add('wrong');
-    $(`qfeedback-${suffix}`).textContent = `✗ Answer: ${q.options[q.answer]}`;
-    $(`qfeedback-${suffix}`).className = 'q-feedback wrong';
-    $(`q-panel-${suffix}`).classList.add('wrong-flash');
-    triggerWrongAnimation(pIdx);
+    pip?.classList.add('wrong');
+    $(`qfeedback-${sfx}`).textContent = `✗ ${q.options[q.answer]}`;
+    $(`qfeedback-${sfx}`).className   = 'q-feedback wrong';
+    $(`q-panel-${sfx}`).classList.add('wrong-flash');
+    triggerWrongAnim(pIdx);
   }
 
-  // Advance to next question after brief delay
-  setTimeout(() => {
+  // Advance after feedback delay
+  setTimeout(async () => {
     p.qIndex++;
-    if (p.qIndex >= TOTAL_QUESTIONS) {
+    if (p.qIndex >= TOTAL_Q) {
       p.done = true;
-      const panelSuffix = pIdx === 0 ? 'p1' : 'p2';
-      $(`q-panel-${panelSuffix}`).classList.add('done-panel');
-      $(`streak-${panelSuffix}`).textContent = '';
+      $(`q-panel-${sfx}`).classList.add('done-panel');
+      $(`streak-${sfx}`).textContent = '';
 
-      // If this player finished first — check win
-      if (!gameState.gameOver) {
-        const other = gameState.players[1 - pIdx];
-        if (other.done) {
-          // Both done — compare scores
-          endGame('scores');
-        } else {
-          endGame('finish', pIdx);
+      if (gameMode === 'online') {
+        await pushMyStateToFirebase(p);
+        if (gs.players[myPlayerIdx===0?1:0].done) triggerEndGame('scores');
+        else triggerEndGame('finish', pIdx);
+      } else {
+        const other = gs.players[1-pIdx];
+        if (!gs.gameOver) {
+          if (other.done) triggerEndGame('scores');
+          else            triggerEndGame('finish', pIdx);
         }
       }
     } else {
       p.locked = false;
+      if (gameMode === 'online') await pushMyStateToFirebase(p);
       loadQuestion(pIdx);
     }
   }, 900);
 }
 
-// ── Rope visual ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+//  ROPE & ROBOT ANIMATIONS
+// ═══════════════════════════════════════════════════════════
+
 function updateRope(pos) {
-  document.documentElement.style.setProperty('--rope-pos', pos);
-  const marker = $('rope-marker');
-  const flag = $('rope-flag');
-  marker.style.left = `calc(${pos}% - 2px)`;
-  flag.style.left = `${pos}%`;
-
-  // Color shift based on position
-  const rope = document.querySelector('.rope');
-  if (pos < 30) {
-    rope.style.boxShadow = `0 3px 15px rgba(255,60,90,.5), inset 0 1px 2px rgba(255,255,255,.15)`;
-  } else if (pos > 70) {
-    rope.style.boxShadow = `0 3px 15px rgba(0,212,255,.5), inset 0 1px 2px rgba(255,255,255,.15)`;
-  } else {
-    rope.style.boxShadow = `0 3px 8px rgba(0,0,0,.6), inset 0 1px 2px rgba(255,255,255,.15)`;
-  }
+  $('rope-marker').style.left = `calc(${pos}% - 2px)`;
+  $('rope-flag').style.left   = `${pos}%`;
+  const rope = $('rope');
+  if (pos < 30)      rope.style.boxShadow = '0 3px 15px rgba(255,60,90,.5),inset 0 1px 2px rgba(255,255,255,.15)';
+  else if (pos > 70) rope.style.boxShadow = '0 3px 15px rgba(0,212,255,.5),inset 0 1px 2px rgba(255,255,255,.15)';
+  else               rope.style.boxShadow = '0 3px 8px rgba(0,0,0,.6),inset 0 1px 2px rgba(255,255,255,.15)';
 }
 
-// ── Robot animations ──────────────────────────────────────────
-function triggerPullAnimation(pIdx) {
-  const robo = $(`robo-p${pIdx + 1}`);
-  robo.classList.remove('pulling', 'wrong-anim');
-  void robo.offsetWidth;
-  robo.classList.add('pulling');
-  robo.addEventListener('animationend', () => robo.classList.remove('pulling'), { once: true });
+function triggerPullAnim(pIdx) {
+  const r = $(`robo-p${pIdx+1}`);
+  r.classList.remove('pulling','wrong-anim');
+  void r.offsetWidth;
+  r.classList.add('pulling');
+  r.addEventListener('animationend', () => r.classList.remove('pulling'), {once:true});
+}
+function triggerWrongAnim(pIdx) {
+  const r = $(`robo-p${pIdx+1}`);
+  r.classList.remove('pulling','wrong-anim');
+  void r.offsetWidth;
+  r.classList.add('wrong-anim');
+  r.addEventListener('animationend', () => r.classList.remove('wrong-anim'), {once:true});
 }
 
-function triggerWrongAnimation(pIdx) {
-  const robo = $(`robo-p${pIdx + 1}`);
-  robo.classList.remove('pulling', 'wrong-anim');
-  void robo.offsetWidth;
-  robo.classList.add('wrong-anim');
-  robo.addEventListener('animationend', () => robo.classList.remove('wrong-anim'), { once: true });
+// ═══════════════════════════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════════════════════════
+
+function startTimer() {
+  timeLeft = TOTAL_SEC;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    $('timer-text').textContent = timeLeft;
+    $('timer-bar').style.width  = (timeLeft/TOTAL_SEC*100) + '%';
+    if (timeLeft <= 20) {
+      $('timer-bar').style.background = 'linear-gradient(90deg,#ff3c5a,#ff0000)';
+      $('timer-text').style.color = '#ff3c5a';
+    } else if (timeLeft <= 40) {
+      $('timer-bar').style.background = 'linear-gradient(90deg,#ffd700,#ff7700)';
+    }
+    if (timeLeft <= 0 && !gs.gameOver) triggerEndGame('time');
+  }, 1000);
 }
 
-// ── Timer ─────────────────────────────────────────────────────
-function tickTimer() {
-  timeLeft--;
-  updateTimerDisplay();
-  if (timeLeft <= 0 && !gameState.gameOver) {
-    endGame('time');
-  }
-}
+// ═══════════════════════════════════════════════════════════
+//  END GAME
+// ═══════════════════════════════════════════════════════════
 
-function updateTimerDisplay() {
-  $('timer-text').textContent = timeLeft;
-  const pct = (timeLeft / TOTAL_TIME) * 100;
-  $('timer-bar').style.width = pct + '%';
-
-  // Color warning
-  if (timeLeft <= 20) {
-    $('timer-bar').style.background = 'linear-gradient(90deg, #ff3c5a, #ff0000)';
-    $('timer-text').style.color = '#ff3c5a';
-  } else if (timeLeft <= 40) {
-    $('timer-bar').style.background = 'linear-gradient(90deg, #ffd700, #ff7700)';
-    $('timer-text').style.color = '#ffd700';
-  }
-}
-
-// ── End game ──────────────────────────────────────────────────
-function endGame(reason, winnerPIdx) {
-  if (gameState.gameOver) return;
-  gameState.gameOver = true;
+async function triggerEndGame(reason, winnerPIdx) {
+  if (gs.gameOver) return;
+  gs.gameOver = true;
   clearInterval(timerInterval);
 
-  // Disable all buttons
-  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
-  gameState.players.forEach(p => { p.locked = true; });
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled=true);
+  gs.players.forEach(p => p.locked=true);
 
-  const p1 = gameState.players[0];
-  const p2 = gameState.players[1];
+  if (gameMode === 'online') await pushGameOver();
 
-  let winner = null;
-  let winnerText = '';
-  let reasonText = '';
+  const p1 = gs.players[0], p2 = gs.players[1];
+  let winner=null, winTitle='', winReason='';
 
-  if (reason === 'finish') {
-    winner = winnerPIdx;
-    winnerText = `${gameState.players[winnerPIdx].name} WINS!`;
-    reasonText = '🏆 First to finish all questions!';
-  } else if (reason === 'time') {
-    if (p1.score > p2.score) {
-      winner = 0;
-      winnerText = `${p1.name} WINS!`;
-      reasonText = `⏱ Time's up! Higher score wins!`;
-    } else if (p2.score > p1.score) {
-      winner = 1;
-      winnerText = `${p2.name} WINS!`;
-      reasonText = `⏱ Time's up! Higher score wins!`;
-    } else {
-      winner = null;
-      winnerText = "IT'S A DRAW!";
-      reasonText = `⏱ Time's up! Same score — what a battle!`;
-    }
+  if (reason==='finish') {
+    winner    = winnerPIdx;
+    winTitle  = `${gs.players[winnerPIdx].name} WINS!`;
+    winReason = '🏆 First to answer all questions!';
+  } else if (reason==='time') {
+    if (p1.score > p2.score)      { winner=0; winTitle=`${p1.name} WINS!`; winReason='⏱ Time\'s up — most correct!'; }
+    else if (p2.score > p1.score) { winner=1; winTitle=`${p2.name} WINS!`; winReason='⏱ Time\'s up — most correct!'; }
+    else                          { winner=null; winTitle="IT'S A DRAW!";   winReason='⏱ Time\'s up — dead even!'; }
   } else {
-    // Both finished, compare scores
-    if (p1.score > p2.score) {
-      winner = 0;
-      winnerText = `${p1.name} WINS!`;
-      reasonText = `🎯 Better accuracy!`;
-    } else if (p2.score > p1.score) {
-      winner = 1;
-      winnerText = `${p2.name} WINS!`;
-      reasonText = `🎯 Better accuracy!`;
-    } else {
-      winner = null;
-      winnerText = "IT'S A DRAW!";
-      reasonText = `🤝 Perfect tie! Both incredible!`;
-    }
+    if (p1.score > p2.score)      { winner=0; winTitle=`${p1.name} WINS!`; winReason='🎯 Better accuracy!'; }
+    else if (p2.score > p1.score) { winner=1; winTitle=`${p2.name} WINS!`; winReason='🎯 Better accuracy!'; }
+    else                          { winner=null; winTitle="IT'S A DRAW!";   winReason='🤝 Equal genius!'; }
   }
 
-  // Show end screen after brief delay
   setTimeout(() => {
-    $('win-title').textContent = winnerText;
-    $('win-reason').textContent = reasonText;
-
-    $('fs-name-p1').textContent = p1.name;
-    $('fs-name-p2').textContent = p2.name;
+    $('win-title').textContent  = winTitle;
+    $('win-reason').textContent = winReason;
+    $('fs-name-p1').textContent  = p1.name;
+    $('fs-name-p2').textContent  = p2.name;
     $('fs-score-p1').textContent = `${p1.score}/12`;
     $('fs-score-p2').textContent = `${p2.score}/12`;
-
-    $('final-p1').classList.remove('winner-card');
-    $('final-p2').classList.remove('winner-card');
-    if (winner === 0) $('final-p1').classList.add('winner-card');
-    if (winner === 1) $('final-p2').classList.add('winner-card');
-
-    $('win-bot').textContent = winner === null ? '🤝' : '🏆';
-
+    $('final-p1').classList.toggle('winner-card', winner===0);
+    $('final-p2').classList.toggle('winner-card', winner===1);
+    $('win-bot').textContent = winner===null ? '🤝' : '🏆';
     launchFireworks();
     showScreen('end');
   }, 800);
 }
 
-// ── Fireworks ─────────────────────────────────────────────────
-function launchFireworks() {
-  const container = $('fireworks');
-  container.innerHTML = '';
-  const colors = ['#ffd700', '#ff3c5a', '#00d4ff', '#00ff88', '#ff7700', '#ff69b4'];
-  const cx = window.innerWidth / 2;
-  const cy = window.innerHeight / 2;
+// ── Restart ───────────────────────────────────────────────────
+$('btn-restart').onclick = async () => {
+  clearInterval(timerInterval);
+  // Clean up Firebase room if online
+  if (gameMode==='online' && roomRef && onlineRole==='host') {
+    try {
+      const { remove } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+      await remove(roomRef);
+    } catch(_) {}
+  }
+  roomRef=null; gs=null; gameMode=null; onlineRole=null; myPlayerIdx=null;
+  $('timer-bar').style.background=''; $('timer-text').style.color='';
+  showScreen('start');
+};
 
-  for (let b = 0; b < 6; b++) {
-    const bx = Math.random() * window.innerWidth;
-    const by = Math.random() * window.innerHeight * 0.6 + 50;
-    const delay = b * 0.25;
-    for (let i = 0; i < 18; i++) {
+// ═══════════════════════════════════════════════════════════
+//  KEYBOARD (local mode only)
+// ═══════════════════════════════════════════════════════════
+
+document.addEventListener('keydown', e => {
+  if (!gs || gs.gameOver || gameMode !== 'local') return;
+  const p1k = {'1':0,'2':1,'3':2,'4':3};
+  const p2k = {'7':0,'8':1,'9':2,'0':3};
+  if (p1k[e.key] !== undefined && !gs.players[0].locked && !gs.players[0].done) handleAnswer(0, p1k[e.key]);
+  if (p2k[e.key] !== undefined && !gs.players[1].locked && !gs.players[1].done) handleAnswer(1, p2k[e.key]);
+});
+
+// ═══════════════════════════════════════════════════════════
+//  FIREWORKS
+// ═══════════════════════════════════════════════════════════
+
+function launchFireworks() {
+  const c = $('fireworks'); c.innerHTML='';
+  const colors=['#ffd700','#ff3c5a','#00d4ff','#00ff88','#ff7700','#ff69b4'];
+  for (let b=0; b<7; b++) {
+    const bx = Math.random()*window.innerWidth;
+    const by = Math.random()*window.innerHeight*.6+50;
+    const delay = b*.2;
+    for (let i=0; i<20; i++) {
       const spark = document.createElement('div');
-      spark.className = 'spark';
-      const angle = (i / 18) * Math.PI * 2;
-      const dist = 80 + Math.random() * 80;
-      spark.style.cssText = `
-        left: ${bx}px; top: ${by}px;
-        background: ${colors[Math.floor(Math.random() * colors.length)]};
-        --tx: ${Math.cos(angle) * dist}px;
-        --ty: ${Math.sin(angle) * dist}px;
-        --dur: ${0.6 + Math.random() * 0.5}s;
-        --delay: ${delay + Math.random() * 0.2}s;
-      `;
-      container.appendChild(spark);
+      spark.className='spark';
+      const ang = (i/20)*Math.PI*2;
+      const d   = 80+Math.random()*90;
+      spark.style.cssText=`left:${bx}px;top:${by}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(ang)*d}px;--ty:${Math.sin(ang)*d}px;--dur:${.6+Math.random()*.5}s;--delay:${delay+Math.random()*.2}s;border-radius:${Math.random()>.5?'50%':'0'}`;
+      c.appendChild(spark);
     }
   }
 }
 
-// ── Keyboard controls ─────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (!gameState || gameState.gameOver) return;
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
 
-  // P1: keys 1,2,3,4
-  const p1Map = { '1': 0, '2': 1, '3': 2, '4': 3 };
-  // P2: keys 7,8,9,0
-  const p2Map = { '7': 0, '8': 1, '9': 2, '0': 3 };
-
-  if (p1Map[e.key] !== undefined && !gameState.players[0].locked && !gameState.players[0].done) {
-    handleAnswer(0, p1Map[e.key]);
-  }
-  if (p2Map[e.key] !== undefined && !gameState.players[1].locked && !gameState.players[1].done) {
-    handleAnswer(1, p2Map[e.key]);
-  }
-});
-
-// ── Shuffle ───────────────────────────────────────────────────
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+function shuffleArr(arr) {
+  for (let i=arr.length-1; i>0; i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
   }
   return arr;
 }
 
-// ── Button bindings ───────────────────────────────────────────
-$('btn-start').addEventListener('click', initGame);
-$('p1-name').addEventListener('keydown', e => { if (e.key === 'Enter') initGame(); });
-$('p2-name').addEventListener('keydown', e => { if (e.key === 'Enter') initGame(); });
+function genRoomCode() {
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:5}, ()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
 
-$('btn-restart').addEventListener('click', () => {
-  clearInterval(timerInterval);
-  gameState = null;
-  // Reset timer bar colors
-  $('timer-bar').style.background = '';
-  $('timer-text').style.color = '';
-  showScreen('start');
-});
+function saveFbConfig(cfg) { localStorage.setItem(FB_STORAGE_KEY, JSON.stringify(cfg)); }
+function loadFbConfig()    { try { return JSON.parse(localStorage.getItem(FB_STORAGE_KEY)); } catch(_){return null;} }
 
-// ── Start on load ─────────────────────────────────────────────
-window.addEventListener('load', () => {
-  showScreen('start');
-});
+// ── Boot ──────────────────────────────────────────────────────
+window.addEventListener('load', () => showScreen('start'));
