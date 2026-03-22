@@ -872,147 +872,106 @@ kbd {
   padding: 0 8px;
 }
 
-/* ══════════════════════════════════════════════════
-   THEME PICKER
-══════════════════════════════════════════════════ */
-.theme-picker-wrap {
-  margin-bottom: 1.2rem;
-  text-align: center;
-}
-.theme-picker-label {
-  font-family: var(--font-d);
-  font-size: .62rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: .6rem;
-}
-.theme-hint {
-  font-family: var(--font-b);
-  font-size: .7rem;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--muted);
-  opacity: .7;
-}
-.theme-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-  justify-content: center;
-}
-.theme-chip {
-  background: rgba(255,255,255,.05);
-  border: 1.5px solid rgba(255,255,255,.12);
-  border-radius: 50px;
-  color: var(--muted);
-  font-family: var(--font-b);
-  font-size: .78rem;
-  padding: .35rem .9rem;
-  cursor: pointer;
-  transition: all .18s;
-  user-select: none;
-  white-space: nowrap;
-}
-.theme-chip:hover {
-  border-color: rgba(255,255,255,.3);
-  color: var(--text);
-  background: rgba(255,255,255,.09);
-}
-.theme-chip.selected {
-  background: linear-gradient(135deg, rgba(0,212,255,.2), rgba(0,100,200,.2));
-  border-color: var(--p2);
-  color: var(--p2);
-  box-shadow: 0 0 12px rgba(0,212,255,.2);
-}
-.theme-chip.selected.military-chip {
-  background: linear-gradient(135deg, rgba(100,200,100,.2), rgba(50,150,50,.2));
-  border-color: #4caf50;
-  color: #4caf50;
-  box-shadow: 0 0 12px rgba(76,175,80,.25);
-}
-.theme-all-badge {
-  font-size: .65rem;
-  color: var(--green);
-  font-family: var(--font-d);
-  margin-top: .3rem;
-  letter-spacing: .06em;
-  min-height: 1em;
-  display: block;
-}
 
 /* ══════════════════════════════════════════════════
    THEME PICKER
 ══════════════════════════════════════════════════ */
 .theme-picker-wrap {
   margin-bottom: 1.4rem;
-  padding: 1rem 1.2rem;
+  padding: .9rem 1.2rem 1rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
+  width: 100%;
+  max-width: 560px;
 }
 
-.theme-hint {
-  font-size: .6rem;
+.theme-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .65rem;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.theme-picker-title {
+  font-family: var(--font-d);
+  font-size: .62rem;
   color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+
+.theme-all-badge {
+  font-size: .7rem;
+  color: var(--green);
   font-family: var(--font-b);
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-  vertical-align: middle;
+  font-weight: 600;
+  transition: color .2s;
+}
+.theme-badge-active {
+  color: var(--p2);
 }
 
 .theme-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: .5rem;
-  justify-content: center;
-  margin-bottom: .6rem;
+  gap: .45rem;
+  justify-content: flex-start;
+  margin-bottom: .55rem;
 }
 
 .theme-chip {
   background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.12);
+  border: 1.5px solid rgba(255,255,255,.12);
   border-radius: 20px;
   color: var(--muted);
   font-family: var(--font-b);
   font-size: .78rem;
-  padding: .38rem .9rem;
+  padding: .4rem .95rem;
   cursor: pointer;
-  transition: all .18s;
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
   user-select: none;
+  outline: none;
 }
 .theme-chip:hover {
-  border-color: rgba(255,255,255,.3);
+  border-color: rgba(255,255,255,.35);
   color: var(--text);
-  background: rgba(255,255,255,.09);
+  background: rgba(255,255,255,.1);
+}
+.theme-chip:focus-visible {
+  outline: 2px solid var(--p2);
+  outline-offset: 2px;
 }
 .theme-chip.active {
-  background: rgba(0,212,255,.15);
+  background: rgba(0,212,255,.18);
   border-color: var(--p2);
-  color: var(--p2);
+  color: #fff;
   font-weight: 600;
-  box-shadow: 0 0 10px rgba(0,212,255,.2);
+  box-shadow: 0 0 12px rgba(0,212,255,.25);
 }
+
+/* Military chip gets gold colouring when active */
 .theme-chip.military-chip.active {
-  background: rgba(255,215,0,.12);
+  background: rgba(255,215,0,.16);
   border-color: var(--gold);
   color: var(--gold);
-  box-shadow: 0 0 10px rgba(255,215,0,.2);
+  box-shadow: 0 0 12px rgba(255,215,0,.25);
 }
-.theme-chip.military-chip:hover {
-  border-color: var(--gold);
+.theme-chip.military-chip:hover:not(.active) {
+  border-color: rgba(255,215,0,.5);
   color: var(--gold);
 }
 
-.theme-note {
-  font-size: .72rem;
+.theme-hint-text {
+  font-size: .68rem;
   color: var(--muted);
-  text-align: center;
   font-style: italic;
   margin: 0;
 }
 
 @media (max-width: 600px) {
-  .theme-chip { font-size: .7rem; padding: .3rem .7rem; }
+  .theme-chip { font-size: .72rem; padding: .35rem .75rem; }
+  .theme-picker-wrap { padding: .7rem .8rem .8rem; }
 }

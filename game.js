@@ -12,39 +12,35 @@ const FB_KEY  = 'robotug_firebase_config';
 
 // ═══════════════════════════════════════════════════════════
 //  THEME SELECTION
-// Chips are built dynamically from QUESTION_SET_NAMES (questions.js).
-// No chip selected = all themes active (default).
+//  Chips are static HTML buttons in index.html.
+//  Clicking toggles .active class. No chips active = all themes.
 // ═══════════════════════════════════════════════════════════
-function buildThemeChips(chipsId) {
-  const container = document.getElementById(chipsId);
-  if (!container || !window.QUESTION_SET_NAMES) return;
-  container.innerHTML = '';
-  QUESTION_SET_NAMES.forEach(set => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'theme-chip' + (set.id === 'military' ? ' military-chip' : '');
-    btn.dataset.theme = set.id;
-    btn.textContent = set.label;
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('active');
-      updateThemeNote(chipsId);
+function initThemeChips() {
+  ['local-theme-chips', 'online-theme-chips'].forEach(chipsId => {
+    const container = document.getElementById(chipsId);
+    if (!container) return;
+    container.querySelectorAll('.theme-chip').forEach(chip => {
+      chip.addEventListener('click', function() {
+        this.classList.toggle('active');
+        updateThemeBadge(chipsId);
+      });
     });
-    container.appendChild(btn);
   });
 }
 
-function updateThemeNote(chipsId) {
+function updateThemeBadge(chipsId) {
   const container = document.getElementById(chipsId);
   if (!container) return;
-  const active = [...container.querySelectorAll('.theme-chip.active')];
-  const badge = container.parentElement.querySelector('.theme-all-badge');
+  const active = container.querySelectorAll('.theme-chip.active');
+  const badgeId = chipsId === 'local-theme-chips' ? 'local-theme-badge' : 'online-theme-badge';
+  const badge   = document.getElementById(badgeId);
   if (!badge) return;
   if (active.length === 0) {
     badge.textContent = '✓ All themes active';
-    badge.style.color = 'var(--green)';
+    badge.className   = 'theme-all-badge';
   } else {
     badge.textContent = '🎯 ' + active.length + ' theme' + (active.length > 1 ? 's' : '') + ' selected';
-    badge.style.color = 'var(--p2)';
+    badge.className   = 'theme-all-badge theme-badge-active';
   }
 }
 
@@ -52,11 +48,6 @@ function getSelectedThemes(chipsId) {
   const container = document.getElementById(chipsId);
   if (!container) return [];
   return [...container.querySelectorAll('.theme-chip.active')].map(c => c.dataset.theme);
-}
-
-function initThemeChips() {
-  buildThemeChips('local-theme-chips');
-  buildThemeChips('online-theme-chips');
 }
 
 

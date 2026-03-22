@@ -90,24 +90,21 @@
 
     <!-- Theme Picker -->
     <div class="theme-picker-wrap">
-      <label class="setting-label" style="text-align:center;display:block;margin-bottom:.5rem">🎯 Question Themes <span class="theme-hint">(all selected = mix of everything)</span></label>
-      <div class="theme-chips" id="local-theme-chips">
-        <button class="theme-chip" data-theme="science">🔬 Science & Tech</button>
-        <button class="theme-chip" data-theme="history">🏛️ History & Politics</button>
-        <button class="theme-chip" data-theme="geo">🌍 Geography & Nature</button>
-        <button class="theme-chip" data-theme="arts">🎨 Arts & Philosophy</button>
-        <button class="theme-chip" data-theme="culture">📊 Economics & Culture</button>
-        <button class="theme-chip active military-chip" data-theme="military">✈️ Air Force BMT</button>
+      <div class="theme-picker-header">
+        <span class="theme-picker-title">🎯 Question Themes</span>
+        <span class="theme-all-badge" id="local-theme-badge">✓ All themes active</span>
       </div>
-      <p class="theme-note" id="local-theme-note">All themes active — click to filter</p>
+      <div class="theme-chips" id="local-theme-chips">
+        <button type="button" class="theme-chip" data-theme="science">🔬 Science &amp; Tech</button>
+        <button type="button" class="theme-chip" data-theme="history">🏛️ History &amp; Politics</button>
+        <button type="button" class="theme-chip" data-theme="geo">🌍 Geography &amp; Nature</button>
+        <button type="button" class="theme-chip" data-theme="arts">🎨 Arts &amp; Philosophy</button>
+        <button type="button" class="theme-chip" data-theme="culture">📊 Economics &amp; Culture</button>
+        <button type="button" class="theme-chip military-chip" data-theme="military">✈️ Air Force BMT</button>
+      </div>
+      <p class="theme-hint-text">No theme selected = all themes mixed randomly</p>
     </div>
 
-
-    <!-- Theme Picker -->
-    <div class="theme-picker-wrap">
-      <p class="theme-picker-label">🎯 Question Themes <span class="theme-hint">(default: all themes)</span></p>
-      <div class="theme-chips" id="local-theme-chips"></div>
-    </div>
     <button class="btn-start" id="btn-start-local">⚡ START BATTLE</button>
   </div>
 </div>
@@ -150,7 +147,7 @@
     <!-- Lobby (shown after Firebase is ready) -->
     <div id="lobby-section" style="display:none">
 
-      <!-- Settings (host sets these; guest reads them from room) -->
+      <!-- Settings (host sets these) -->
       <div class="settings-row settings-row-online" id="host-settings">
         <div class="setting-group">
           <label class="setting-label">❓ Questions (host sets)</label>
@@ -182,25 +179,22 @@
       </div>
 
       <!-- Theme Picker (host sets) -->
-      <div class="theme-picker-wrap" style="margin-bottom:.8rem">
-        <label class="setting-label" style="text-align:center;display:block;margin-bottom:.5rem">🎯 Question Themes <span class="theme-hint">(all = everything)</span></label>
-        <div class="theme-chips" id="online-theme-chips">
-          <button class="theme-chip" data-theme="science">🔬 Science & Tech</button>
-          <button class="theme-chip" data-theme="history">🏛️ History & Politics</button>
-          <button class="theme-chip" data-theme="geo">🌍 Geography & Nature</button>
-          <button class="theme-chip" data-theme="arts">🎨 Arts & Philosophy</button>
-          <button class="theme-chip" data-theme="culture">📊 Economics & Culture</button>
-          <button class="theme-chip active military-chip" data-theme="military">✈️ Air Force BMT</button>
+      <div class="theme-picker-wrap" style="margin-bottom:.9rem">
+        <div class="theme-picker-header">
+          <span class="theme-picker-title">🎯 Question Themes <span style="font-size:.65rem;font-weight:400;opacity:.6">(host sets)</span></span>
+          <span class="theme-all-badge" id="online-theme-badge">✓ All themes active</span>
         </div>
-        <p class="theme-note" id="online-theme-note">All themes active — click to filter</p>
+        <div class="theme-chips" id="online-theme-chips">
+          <button type="button" class="theme-chip" data-theme="science">🔬 Science &amp; Tech</button>
+          <button type="button" class="theme-chip" data-theme="history">🏛️ History &amp; Politics</button>
+          <button type="button" class="theme-chip" data-theme="geo">🌍 Geography &amp; Nature</button>
+          <button type="button" class="theme-chip" data-theme="arts">🎨 Arts &amp; Philosophy</button>
+          <button type="button" class="theme-chip" data-theme="culture">📊 Economics &amp; Culture</button>
+          <button type="button" class="theme-chip military-chip" data-theme="military">✈️ Air Force BMT</button>
+        </div>
+        <p class="theme-hint-text">No theme selected = all themes mixed randomly</p>
       </div>
 
-
-      <!-- Theme Picker (host sets) -->
-      <div class="theme-picker-wrap">
-        <p class="theme-picker-label">🎯 Question Themes <span class="theme-hint">(default: all — host sets)</span></p>
-        <div class="theme-chips" id="online-theme-chips"></div>
-      </div>
       <div class="lobby-wrap">
         <div class="lobby-card">
           <div class="lobby-card-icon">🏠</div>
