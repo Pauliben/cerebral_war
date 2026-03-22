@@ -153,7 +153,7 @@ async function doCreateRoom(code, hostName) {
   roomRef = ref(fbDb, `rooms/${code}`);
   await set(roomRef, {
     status:'waiting', createdAt:Date.now(), totalQ:TOTAL_Q, totalSec:TOTAL_SEC,
-    ropePos:50, gameOver:false,
+    ropePos:50, gameOver:false, endScreenShown:false,
     players:{
       p1:{name:hostName, score:0, qIndex:0, streak:0, done:false, questions:p1qs},
       p2:{name:'',       score:0, qIndex:0, streak:0, done:false, questions:p2qs},
@@ -314,9 +314,10 @@ function handleRemote(remote) {
 
   if (them.done && oppStatus) oppStatus.textContent = '\u2705 ' + gs.players[theirIdx].name + ' finished!';
 
-  // Server-authoritative game over — ONLY read result from Firebase.
-  // Never compute locally for online mode (avoids race conditions / draw bugs).
-  if (remote.gameOver && !gs.gameOver) {
+  // Server-authoritative game over — read result from Firebase.
+  // Use a separate flag so guest can receive this even after locally stopping the timer.
+  if (remote.gameOver && !gs.endScreenShown) {
+    gs.endScreenShown = true;
     gs.gameOver = true;
     clearInterval(timerInterval);
     document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
@@ -585,7 +586,7 @@ function startTimer(){
     if(timeLeft<=0&&!gs.gameOver) {
       // Only host decides time-based end in online mode
       if (gameMode !== 'online' || onlineRole === 'host') triggerEndGame('time');
-      else { gs.gameOver=true; clearInterval(timerInterval); } // guest freezes, waits for host result
+      else { clearInterval(timerInterval); gs.players.forEach(p=>p.locked=true); document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true); } // guest stops timer, does NOT set gameOver — handleRemote will trigger end screen
     }
   },1000);
 }
@@ -634,6 +635,7 @@ async function triggerEndGame(reason, winnerPIdx) {
     if (onlineRole==='host') {
       const { winner, winTitle, winReason } = computeResult(reason, winnerPIdx);
       await pushGameOver(winner, winTitle, winReason);
+      gs.endScreenShown = true; // prevent handleRemote from showing end screen again
       setTimeout(() => showEndScreen(winTitle, winReason, winner), 600);
     }
     // Guest does nothing here — handleRemote will call showEndScreen when it sees result
