@@ -314,12 +314,19 @@ function handleRemote(remote) {
 
   if (them.done && oppStatus) oppStatus.textContent = '\u2705 ' + gs.players[theirIdx].name + ' finished!';
 
-  // End conditions
-  if (!gs.gameOver) {
-    if (them.done && gs.players[myPIdx].done) triggerEndGame('scores');
-    else if (them.done) triggerEndGame('finish', theirIdx);
+  // Server-authoritative game over — ONLY read result from Firebase.
+  // Never compute locally for online mode (avoids race conditions / draw bugs).
+  if (remote.gameOver && !gs.gameOver) {
+    gs.gameOver = true;
+    clearInterval(timerInterval);
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+    gs.players.forEach(p => p.locked = true);
+    if (remote.result) {
+      const r = remote.result;
+      const winner = r.winnerIdx === -1 ? null : r.winnerIdx;
+      setTimeout(() => showEndScreen(r.winTitle, r.winReason, winner), 600);
+    }
   }
-  if (remote.gameOver && !gs.gameOver) { gs.gameOver=true; clearInterval(timerInterval); }
 }
 
 // ── Push my state ─────────────────────────────────────────────
@@ -337,11 +344,15 @@ async function pushState(p) {
     });
   } catch(e) { console.warn('pushState:', e.message); }
 }
-async function pushGameOver() {
+async function pushGameOver(winnerIdx, winTitle, winReason) {
   if (!roomRef) return;
   try {
     const { update } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
-    await update(roomRef, { gameOver:true, status:'ended' });
+    await update(roomRef, {
+      gameOver: true,
+      status: 'ended',
+      result: { winnerIdx: winnerIdx === null ? -1 : winnerIdx, winTitle, winReason }
+    });
   } catch(_) {}
 }
 
@@ -517,10 +528,19 @@ function handleAnswer(pIdx, chosenIdx) {
       p.done=true;
       $(`q-panel-${sfx}`).classList.add('done-panel');
       $(`streak-${sfx}`).textContent='';
-      if(gameMode==='online') await pushState(p);
-      if(!gs.gameOver){
-        const other=gs.players[1-pIdx];
-        if(other.done) triggerEndGame('scores'); else triggerEndGame('finish',pIdx);
+      if(gameMode==='online') {
+        await pushState(p);
+        // Online: only HOST decides end game — guest just pushes state and waits
+        if (onlineRole === 'host' && !gs.gameOver) {
+          const other = gs.players[1-pIdx];
+          if (other.done) triggerEndGame('scores'); else triggerEndGame('finish', pIdx);
+        }
+      } else {
+        // Local mode: decide immediately
+        if(!gs.gameOver){
+          const other=gs.players[1-pIdx];
+          if(other.done) triggerEndGame('scores'); else triggerEndGame('finish',pIdx);
+        }
       }
     } else {
       p.locked=false;
@@ -562,39 +582,66 @@ function startTimer(){
     $('timer-bar').style.width=Math.max(0,timeLeft/TOTAL_SEC*100)+'%';
     if(timeLeft<=10){$('timer-bar').style.background='linear-gradient(90deg,#ff3c5a,#ff0000)';$('timer-text').style.color='#ff3c5a';}
     else if(timeLeft<=30){$('timer-bar').style.background='linear-gradient(90deg,#ffd700,#ff7700)';$('timer-text').style.color='#ffd700';}
-    if(timeLeft<=0&&!gs.gameOver) triggerEndGame('time');
+    if(timeLeft<=0&&!gs.gameOver) {
+      // Only host decides time-based end in online mode
+      if (gameMode !== 'online' || onlineRole === 'host') triggerEndGame('time');
+      else { gs.gameOver=true; clearInterval(timerInterval); } // guest freezes, waits for host result
+    }
   },1000);
 }
 
 // ═══════════════════════════════════════════════════════════
 //  END GAME
 // ═══════════════════════════════════════════════════════════
-async function triggerEndGame(reason,winnerPIdx){
-  if(!gs||gs.gameOver) return;
+function computeResult(reason, winnerPIdx) {
+  const [p1,p2] = gs.players;
+  let winner=null, winTitle='', winReason='';
+  if (reason==='finish') {
+    winner=winnerPIdx; winTitle=gs.players[winnerPIdx].name+' WINS!'; winReason='🏆 First to finish!';
+  } else if (reason==='time') {
+    if (p1.score>p2.score)      { winner=0; winTitle=p1.name+' WINS!'; winReason="⏱ Time's up — most correct!"; }
+    else if (p2.score>p1.score) { winner=1; winTitle=p2.name+' WINS!'; winReason="⏱ Time's up — most correct!"; }
+    else { winTitle="IT'S A DRAW!"; winReason="⏱ Time's up — perfectly matched!"; }
+  } else {
+    if (p1.score>p2.score)      { winner=0; winTitle=p1.name+' WINS!'; winReason='🎯 Better accuracy!'; }
+    else if (p2.score>p1.score) { winner=1; winTitle=p2.name+' WINS!'; winReason='🎯 Better accuracy!'; }
+    else { winTitle="IT'S A DRAW!"; winReason='🤝 Equal brilliance!'; }
+  }
+  return { winner, winTitle, winReason };
+}
+
+function showEndScreen(winTitle, winReason, winner) {
+  const [p1,p2] = gs.players;
+  $('win-title').textContent=winTitle; $('win-reason').textContent=winReason;
+  $('fs-name-p1').textContent=p1.name; $('fs-name-p2').textContent=p2.name;
+  $('fs-score-p1').textContent=p1.score+'/'+TOTAL_Q;
+  $('fs-score-p2').textContent=p2.score+'/'+TOTAL_Q;
+  $('final-p1').classList.toggle('winner-card', winner===0);
+  $('final-p2').classList.toggle('winner-card', winner===1);
+  $('win-bot').textContent = winner===null ? '🤝' : '🏆';
+  launchFireworks(); showScreen('end');
+}
+
+async function triggerEndGame(reason, winnerPIdx) {
+  if (!gs||gs.gameOver) return;
   gs.gameOver=true; clearInterval(timerInterval);
   document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
   gs.players.forEach(p=>p.locked=true);
-  if(gameMode==='online') await pushGameOver();
-  const [p1,p2]=gs.players;
-  let winner=null,winTitle='',winReason='';
-  if(reason==='finish'){winner=winnerPIdx;winTitle=`${gs.players[winnerPIdx].name} WINS!`;winReason='🏆 First to finish!';}
-  else if(reason==='time'){
-    if(p1.score>p2.score){winner=0;winTitle=`${p1.name} WINS!`;winReason="⏱ Time's up — most correct!";}
-    else if(p2.score>p1.score){winner=1;winTitle=`${p2.name} WINS!`;winReason="⏱ Time's up — most correct!";}
-    else{winTitle="IT'S A DRAW!";winReason="⏱ Time's up — perfectly matched!";}
+
+  if (gameMode==='online') {
+    // In online mode, ONLY the host computes and broadcasts the result.
+    // The guest waits for the result to arrive via handleRemote.
+    if (onlineRole==='host') {
+      const { winner, winTitle, winReason } = computeResult(reason, winnerPIdx);
+      await pushGameOver(winner, winTitle, winReason);
+      setTimeout(() => showEndScreen(winTitle, winReason, winner), 600);
+    }
+    // Guest does nothing here — handleRemote will call showEndScreen when it sees result
   } else {
-    if(p1.score>p2.score){winner=0;winTitle=`${p1.name} WINS!`;winReason='🎯 Better accuracy!';}
-    else if(p2.score>p1.score){winner=1;winTitle=`${p2.name} WINS!`;winReason='🎯 Better accuracy!';}
-    else{winTitle="IT'S A DRAW!";winReason='🤝 Equal brilliance!';}
+    // Local mode — compute and show immediately
+    const { winner, winTitle, winReason } = computeResult(reason, winnerPIdx);
+    setTimeout(() => showEndScreen(winTitle, winReason, winner), 600);
   }
-  setTimeout(()=>{
-    $('win-title').textContent=winTitle; $('win-reason').textContent=winReason;
-    $('fs-name-p1').textContent=p1.name; $('fs-name-p2').textContent=p2.name;
-    $('fs-score-p1').textContent=`${p1.score}/${TOTAL_Q}`; $('fs-score-p2').textContent=`${p2.score}/${TOTAL_Q}`;
-    $('final-p1').classList.toggle('winner-card',winner===0); $('final-p2').classList.toggle('winner-card',winner===1);
-    $('win-bot').textContent=winner===null?'🤝':'🏆';
-    launchFireworks(); showScreen('end');
-  },600);
 }
 
 $('btn-restart').onclick = async ()=>{
