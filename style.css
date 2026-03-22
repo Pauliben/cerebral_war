@@ -871,3 +871,148 @@ kbd {
   line-height: 1.4;
   padding: 0 8px;
 }
+
+/* ══════════════════════════════════════════════════
+   THEME PICKER
+══════════════════════════════════════════════════ */
+.theme-picker-wrap {
+  margin-bottom: 1.2rem;
+  text-align: center;
+}
+.theme-picker-label {
+  font-family: var(--font-d);
+  font-size: .62rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: .6rem;
+}
+.theme-hint {
+  font-family: var(--font-b);
+  font-size: .7rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+  opacity: .7;
+}
+.theme-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: center;
+}
+.theme-chip {
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(255,255,255,.12);
+  border-radius: 50px;
+  color: var(--muted);
+  font-family: var(--font-b);
+  font-size: .78rem;
+  padding: .35rem .9rem;
+  cursor: pointer;
+  transition: all .18s;
+  user-select: none;
+  white-space: nowrap;
+}
+.theme-chip:hover {
+  border-color: rgba(255,255,255,.3);
+  color: var(--text);
+  background: rgba(255,255,255,.09);
+}
+.theme-chip.selected {
+  background: linear-gradient(135deg, rgba(0,212,255,.2), rgba(0,100,200,.2));
+  border-color: var(--p2);
+  color: var(--p2);
+  box-shadow: 0 0 12px rgba(0,212,255,.2);
+}
+.theme-chip.selected.military-chip {
+  background: linear-gradient(135deg, rgba(100,200,100,.2), rgba(50,150,50,.2));
+  border-color: #4caf50;
+  color: #4caf50;
+  box-shadow: 0 0 12px rgba(76,175,80,.25);
+}
+.theme-all-badge {
+  font-size: .65rem;
+  color: var(--green);
+  font-family: var(--font-d);
+  margin-top: .3rem;
+  letter-spacing: .06em;
+  min-height: 1em;
+  display: block;
+}
+
+/* ══════════════════════════════════════════════════
+   THEME PICKER
+══════════════════════════════════════════════════ */
+.theme-picker-wrap {
+  margin-bottom: 1.4rem;
+  padding: 1rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.theme-hint {
+  font-size: .6rem;
+  color: var(--muted);
+  font-family: var(--font-b);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: middle;
+}
+
+.theme-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: center;
+  margin-bottom: .6rem;
+}
+
+.theme-chip {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 20px;
+  color: var(--muted);
+  font-family: var(--font-b);
+  font-size: .78rem;
+  padding: .38rem .9rem;
+  cursor: pointer;
+  transition: all .18s;
+  user-select: none;
+}
+.theme-chip:hover {
+  border-color: rgba(255,255,255,.3);
+  color: var(--text);
+  background: rgba(255,255,255,.09);
+}
+.theme-chip.active {
+  background: rgba(0,212,255,.15);
+  border-color: var(--p2);
+  color: var(--p2);
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(0,212,255,.2);
+}
+.theme-chip.military-chip.active {
+  background: rgba(255,215,0,.12);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 10px rgba(255,215,0,.2);
+}
+.theme-chip.military-chip:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.theme-note {
+  font-size: .72rem;
+  color: var(--muted);
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .theme-chip { font-size: .7rem; padding: .3rem .7rem; }
+}

@@ -10,6 +10,56 @@ let TOTAL_Q   = 12;
 let TOTAL_SEC = 100;
 const FB_KEY  = 'robotug_firebase_config';
 
+// ═══════════════════════════════════════════════════════════
+//  THEME SELECTION
+// Chips are built dynamically from QUESTION_SET_NAMES (questions.js).
+// No chip selected = all themes active (default).
+// ═══════════════════════════════════════════════════════════
+function buildThemeChips(chipsId) {
+  const container = document.getElementById(chipsId);
+  if (!container || !window.QUESTION_SET_NAMES) return;
+  container.innerHTML = '';
+  QUESTION_SET_NAMES.forEach(set => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'theme-chip' + (set.id === 'military' ? ' military-chip' : '');
+    btn.dataset.theme = set.id;
+    btn.textContent = set.label;
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      updateThemeNote(chipsId);
+    });
+    container.appendChild(btn);
+  });
+}
+
+function updateThemeNote(chipsId) {
+  const container = document.getElementById(chipsId);
+  if (!container) return;
+  const active = [...container.querySelectorAll('.theme-chip.active')];
+  const badge = container.parentElement.querySelector('.theme-all-badge');
+  if (!badge) return;
+  if (active.length === 0) {
+    badge.textContent = '✓ All themes active';
+    badge.style.color = 'var(--green)';
+  } else {
+    badge.textContent = '🎯 ' + active.length + ' theme' + (active.length > 1 ? 's' : '') + ' selected';
+    badge.style.color = 'var(--p2)';
+  }
+}
+
+function getSelectedThemes(chipsId) {
+  const container = document.getElementById(chipsId);
+  if (!container) return [];
+  return [...container.querySelectorAll('.theme-chip.active')].map(c => c.dataset.theme);
+}
+
+function initThemeChips() {
+  buildThemeChips('local-theme-chips');
+  buildThemeChips('online-theme-chips');
+}
+
+
 // ── DOM helper ────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const SCREEN_IDS = ['start','local-setup','online-setup','waiting','game','end'];
@@ -52,6 +102,7 @@ function readOnlineSettings() {
   TOTAL_Q   = parseInt($('online-q-count').value,   10) || 12;
   TOTAL_SEC = parseInt($('online-time-limit').value, 10) || 100;
 }
+function readOnlineThemes() { return getSelectedThemes('online-theme-chips'); }
 
 // ═══════════════════════════════════════════════════════════
 //  LOCAL MODE
@@ -65,7 +116,8 @@ function startLocalGame() {
   gameMode   = 'local';
   const p1n  = $('p1-name').value.trim() || 'Red Bot';
   const p2n  = $('p2-name').value.trim() || 'Blue Bot';
-  const pool = loadQuestions(TOTAL_Q);
+  const selectedThemes = getSelectedThemes('local-theme-chips');
+  const pool = loadQuestions(TOTAL_Q, getSelectedThemes('local-theme-chips'));
   gs = makeGS(p1n, p2n, shuffleArr([...pool]), shuffleArr([...pool]));
   $('online-badge').style.display = 'none';
   renderGame('local');
@@ -147,12 +199,13 @@ $('btn-create-room').onclick = async () => {
 
 async function doCreateRoom(code, hostName) {
   const { ref, set } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
-  const pool = loadQuestions(TOTAL_Q);
+  const selectedThemes = readOnlineThemes();
+  const pool = loadQuestions(TOTAL_Q, getSelectedThemes('online-theme-chips'));
   const p1qs = shuffleArr([...pool]).map(q=>({q:q.q,options:q.options,answer:q.answer}));
   const p2qs = shuffleArr([...pool]).map(q=>({q:q.q,options:q.options,answer:q.answer}));
   roomRef = ref(fbDb, `rooms/${code}`);
   await set(roomRef, {
-    status:'waiting', createdAt:Date.now(), totalQ:TOTAL_Q, totalSec:TOTAL_SEC,
+    status:'waiting', createdAt:Date.now(), totalQ:TOTAL_Q, totalSec:TOTAL_SEC, themes:getSelectedThemes('online-theme-chips'),
     ropePos:50, gameOver:false, endScreenShown:false,
     players:{
       p1:{name:hostName, score:0, qIndex:0, streak:0, done:false, questions:p1qs},
@@ -692,4 +745,7 @@ function genCode(){return Array.from({length:5},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ234
 function saveFbCfg(c){localStorage.setItem(FB_KEY,JSON.stringify(c));}
 function loadFbCfg(){try{return JSON.parse(localStorage.getItem(FB_KEY));}catch(_){return null;}}
 
-window.addEventListener('load',()=>showScreen('start'));
+window.addEventListener('load',()=>{
+  showScreen('start');
+  initThemeChips();
+});
