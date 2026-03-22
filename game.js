@@ -271,14 +271,50 @@ function handleRemote(remote) {
   const them = remote.players && remote.players[theirKey];
   if (!them) return;
 
+  const prevScore = gs.players[theirIdx].score;
   gs.players[theirIdx].score  = them.score  || 0;
   gs.players[theirIdx].qIndex = them.qIndex || 0;
   gs.players[theirIdx].streak = them.streak || 0;
   gs.players[theirIdx].done   = them.done   || false;
 
+  // Rope
   if (remote.ropePos !== undefined) { gs.ropePos = remote.ropePos; updateRope(gs.ropePos); }
+
+  // Arena score (top display)
   $(`score-p${theirIdx+1}`).textContent = them.score || 0;
 
+  // Live opponent panel updates
+  const oppScore  = $('opp-score-live');
+  const oppCount  = $('opp-count-live');
+  const oppStreak = $('opp-streak-live');
+  const oppStatus = $('opp-status-live');
+  const oppPanel  = $(`q-panel-p${theirIdx+1}`);
+
+  if (oppScore) {
+    oppScore.textContent = them.score || 0;
+    if ((them.score||0) > prevScore) {
+      oppScore.classList.remove('bump'); void oppScore.offsetWidth; oppScore.classList.add('bump');
+    }
+  }
+  if (oppCount)  oppCount.textContent  = 'Q ' + (them.qIndex||0) + ' / ' + TOTAL_Q;
+  if (oppStreak) oppStreak.textContent = (them.streak||0) >= 3 ? ('\uD83D\uDD25\xD7' + them.streak) : '';
+
+  // Light up pips as opponent advances
+  const answered = Math.min(them.qIndex || 0, 20);
+  for (let i = 0; i < answered; i++) {
+    const pip = $('opp-pip-' + i);
+    if (pip && !pip.classList.contains('answered')) pip.classList.add('answered');
+  }
+
+  // Flash panel + animate robot when opponent scores
+  if ((them.score||0) > prevScore) {
+    if (oppPanel) { oppPanel.classList.add('correct-flash'); setTimeout(()=>oppPanel.classList.remove('correct-flash'), 400); }
+    triggerPullAnim(theirIdx);
+  }
+
+  if (them.done && oppStatus) oppStatus.textContent = '\u2705 ' + gs.players[theirIdx].name + ' finished!';
+
+  // End conditions
   if (!gs.gameOver) {
     if (them.done && gs.players[myPIdx].done) triggerEndGame('scores');
     else if (them.done) triggerEndGame('finish', theirIdx);
@@ -345,17 +381,70 @@ function renderGame(mode) {
     setKbdHints('qopts-p2',['7','8','9','0']);
     loadQ(0); loadQ(1);
   } else {
-    const myPanel    = `q-panel-p${myPIdx+1}`;
-    const theirPanel = `q-panel-p${myPIdx===0?2:1}`;
-    $(theirPanel).classList.add('waiting-overlay');
-    setKbdHints(`qopts-p${myPIdx+1}`,['A','B','C','D']);
+    // Online: my panel shows playable questions; opponent panel shows live stats
+    const mySfx = myPIdx===0 ? 'p1' : 'p2';
+    restoreQuestionPanel(mySfx);
+    setKbdHints(`qopts-${mySfx}`, ['A','B','C','D']);
     loadQ(myPIdx);
-    // Clear opponent panel contents
-    const ti = myPIdx===0?1:0;
-    $(`qtext-p${ti+1}`).textContent='';
-    $(`qopts-p${ti+1}`).querySelectorAll('.opt-btn').forEach(b=>{b.querySelector('span').textContent='';b.disabled=true;});
+
+    // Build live stats panel for opponent
+    const ti = myPIdx===0 ? 1 : 0;
+    const theirSfx = ti===0 ? 'p1' : 'p2';
+    const tagClass  = ti===0 ? 'p1-tag' : 'p2-tag';
+    const oppName   = gs.players[ti].name.substring(0,8);
+    const oppPanel  = $(`q-panel-p${ti+1}`);
+    oppPanel.classList.remove('waiting-overlay','done-panel','correct-flash','wrong-flash');
+    oppPanel.innerHTML =
+      `<div class="q-header">` +
+        `<span class="q-player-tag ${tagClass}">${oppName}</span>` +
+        `<span class="q-counter" id="opp-count-live">Q 0 / ${TOTAL_Q}</span>` +
+        `<span class="q-streak" id="opp-streak-live"></span>` +
+      `</div>` +
+      `<div class="opp-live-panel">` +
+        `<div class="opp-vs-icon">⚔️</div>` +
+        `<div class="opp-score-display">` +
+          `<span class="opp-score-num" id="opp-score-live">0</span>` +
+          `<span class="opp-score-lbl">correct</span>` +
+        `</div>` +
+        `<div class="opp-pips" id="opp-pips-live"></div>` +
+        `<div class="opp-live-row">` +
+          `<span class="opp-live-dot-wrap"><span class="opp-live-dot"></span></span>` +
+          `<span class="opp-live-label">LIVE</span>` +
+        `</div>` +
+        `<p class="opp-status-text" id="opp-status-live">${oppName} is battling...</p>` +
+      `</div>`;
+
+    const el = $('opp-pips-live');
+    const shown = Math.min(TOTAL_Q, 20);
+    for(let i=0;i<shown;i++){
+      const pip=document.createElement('div');
+      pip.className='pip'; pip.id='opp-pip-'+i; el.appendChild(pip);
+    }
   }
 }
+
+// Restore a panel to standard question HTML
+function restoreQuestionPanel(sfx) {
+  const pIdx = sfx==='p1' ? 0 : 1;
+  const tagClass = sfx==='p1' ? 'p1-tag' : 'p2-tag';
+  const keys = sfx==='p1' ? ['1','2','3','4'] : ['7','8','9','0'];
+  const panel = $(`q-panel-${sfx}`);
+  panel.innerHTML =
+    `<div class="q-header">` +
+      `<span class="q-player-tag ${tagClass}" id="qtag-${sfx}">${gs.players[pIdx].name.substring(0,8)}</span>` +
+      `<span class="q-counter" id="qcount-${sfx}">Q 1/${TOTAL_Q}</span>` +
+      `<span class="q-streak" id="streak-${sfx}"></span>` +
+    `</div>` +
+    `<p class="q-text" id="qtext-${sfx}">Loading...</p>` +
+    `<div class="q-options" id="qopts-${sfx}">` +
+      `<button class="opt-btn"><kbd>${keys[0]}</kbd><span></span></button>` +
+      `<button class="opt-btn"><kbd>${keys[1]}</kbd><span></span></button>` +
+      `<button class="opt-btn"><kbd>${keys[2]}</kbd><span></span></button>` +
+      `<button class="opt-btn"><kbd>${keys[3]}</kbd><span></span></button>` +
+    `</div>` +
+    `<div class="q-feedback" id="qfeedback-${sfx}"></div>`;
+}
+
 function setKbdHints(optsId, keys) {
   $(optsId).querySelectorAll('.opt-btn').forEach((b,i)=>{const k=b.querySelector('kbd');if(k)k.textContent=keys[i]||'';});
 }

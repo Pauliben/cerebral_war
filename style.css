@@ -770,3 +770,104 @@ kbd {
   .mode-select { gap: 1rem; }
   .mode-btn { min-width: 160px; padding: 1.5rem; }
 }
+
+/* ══════════════════════════════════════════════════
+   ONLINE — LIVE OPPONENT PANEL
+══════════════════════════════════════════════════ */
+.opp-live-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 0;
+  min-height: 0;
+}
+
+.opp-vs-icon {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 0 8px rgba(255,215,0,.4));
+  animation: vsFloat 2.5s ease-in-out infinite;
+}
+@keyframes vsFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-5px) scale(1.08); }
+}
+
+.opp-score-display {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.opp-score-num {
+  font-family: var(--font-d);
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255,215,0,.45);
+  line-height: 1;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.opp-score-num.bump {
+  animation: scoreBump .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes scoreBump {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.opp-score-lbl {
+  font-family: var(--font-d);
+  font-size: .65rem;
+  color: var(--muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.opp-pips {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 180px;
+}
+/* reuse .pip styles; add answered state */
+.pip.answered { background: rgba(255,215,0,.5); box-shadow: 0 0 4px rgba(255,215,0,.4); }
+
+.opp-live-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.opp-live-dot-wrap {
+  display: flex;
+  align-items: center;
+}
+.opp-live-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: livePulse 1.2s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%,100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: .4; transform: scale(.7); }
+}
+.opp-live-label {
+  font-family: var(--font-d);
+  font-size: .62rem;
+  letter-spacing: .14em;
+  color: var(--green);
+  font-weight: 700;
+}
+
+.opp-status-text {
+  font-size: .78rem;
+  color: var(--muted);
+  text-align: center;
+  font-style: italic;
+  line-height: 1.4;
+  padding: 0 8px;
+}
