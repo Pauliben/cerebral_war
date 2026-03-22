@@ -1,11 +1,10 @@
-// questions.js — Robo Tug of War — 1000+ questions across 5 sets
-// loadQuestions(n) returns n shuffled questions from a randomly chosen set.
+// questions.js — Robo Tug of War — 1,181 questions across 6 themed sets
+// loadQuestions(n, selectedThemes) returns n shuffled questions.
+// selectedThemes: array of theme IDs — omit or pass [] for all themes.
 
 const QUESTION_SETS = [
 
-// ════════════════════════════════════════
-// SET 1 — Science & Technology (205 Qs)
-// ════════════════════════════════════════
+// SET 1 — Science & Technology
 [
   {q:"What is the powerhouse of the cell?",options:["Nucleus","Ribosome","Mitochondria","Vacuole"],answer:2},
   {q:"What force keeps planets in orbit?",options:["Magnetism","Gravity","Friction","Nuclear force"],answer:1},
@@ -182,9 +181,7 @@ const QUESTION_SETS = [
   {q:"What is the difference between climate and weather?",options:["They are the same","Climate is long-term patterns; weather is short-term conditions","Weather is long-term; climate is short-term","Climate only applies to tropical regions"],answer:1},
 ],
 
-// ════════════════════════════════════════
-// SET 2 — World History & Politics (204 Qs)
-// ════════════════════════════════════════
+// SET 2 — World History & Politics
 [
   {q:"Who was the first person to walk on the Moon?",options:["Buzz Aldrin","Yuri Gagarin","Neil Armstrong","John Glenn"],answer:2},
   {q:"In what year did the Berlin Wall fall?",options:["1987","1988","1989","1990"],answer:2},
@@ -345,9 +342,7 @@ const QUESTION_SETS = [
   {q:"What was the primary role of the Silk Road?",options:["Military conquest","Trade route linking China, Central Asia and Europe","Religious pilgrimage route","Diplomatic communication system"],answer:1},
 ],
 
-// ════════════════════════════════════════
-// SET 3 — Geography & Environment (200 Qs)
-// ════════════════════════════════════════
+// SET 3 — Geography & Environment
 [
   {q:"What is the largest ocean on Earth?",options:["Atlantic","Indian","Arctic","Pacific"],answer:3},
   {q:"Which river is the longest in the world?",options:["Amazon","Mississippi","Yangtze","Nile"],answer:3},
@@ -485,9 +480,7 @@ const QUESTION_SETS = [
   {q:"What is 'peak water'?",options:["Maximum ocean depth","The point at which demand for fresh water exceeds renewable supply","The highest recorded flood","The maximum glacier height"],answer:1},
 ],
 
-// ════════════════════════════════════════
-// SET 4 — Arts, Literature & Philosophy (200 Qs)
-// ════════════════════════════════════════
+// SET 4 — Arts, Literature & Philosophy
 [
   {q:"Who painted the Sistine Chapel ceiling?",options:["Leonardo da Vinci","Raphael","Michelangelo","Botticelli"],answer:2},
   {q:"Who wrote '1984'?",options:["Aldous Huxley","George Orwell","Ray Bradbury","Franz Kafka"],answer:1},
@@ -644,9 +637,7 @@ const QUESTION_SETS = [
   {q:"What is the difference between tragedy and comedy in Greek drama?",options:["Comedy is shorter","Tragedy ends in death or downfall; comedy ends in reconciliation or marriage","Comedy uses masks; tragedy does not","Tragedy involves gods; comedy does not"],answer:1},
 ],
 
-// ════════════════════════════════════════
-// SET 5 — Economics, Sport & Pop Culture (200 Qs)
-// ════════════════════════════════════════
+// SET 5 — Economics, Sport & Culture
 [
   {q:"What is GDP?",options:["Government Distribution of Products","Gross Domestic Product — total value of goods/services produced in a country","General Development Plan","Global Distribution Policy"],answer:1},
   {q:"What is inflation?",options:["An increase in currency value","A sustained increase in the general price level","A decrease in government spending","An increase in employment"],answer:1},
@@ -788,305 +779,8 @@ const QUESTION_SETS = [
   {q:"What is 'sovereign debt'?",options:["Private corporate debt","Debt issued by a national government","Central bank liabilities","State pension funds"],answer:1},
 ],
 
-// ════════════════════════════════════════
-// SET 6 — Air Force BMT Military Prep (200+ Qs)
-// ════════════════════════════════════════
+// SET 6 — Air Force BMT Preparation
 [
-  {q:"What does BMT stand for?",options:["Basic Military Training","Basic Mastery Test","Basic Marching Techniques","Boot Military Training"],answer:0},
-  {q:"Which branch of the US military conducts BMT at Joint Base San Antonio-Lackland?",options:["Army","Navy","Air Force","Marines"],answer:2},
-  {q:"How long is Air Force Basic Military Training?",options:["6 weeks","7.5 weeks","10 weeks","12 weeks"],answer:1},
-  {q:"What is the Airman's Creed opening line?",options:["I am a Warrior","I am an American Airman","I serve with Pride","I defend my nation"],answer:1},
-  {q:"How many core values does the Air Force have?",options:["2","3","4","5"],answer:1},
-  {q:"What is the first Air Force Core Value?",options:["Service Before Self","Excellence in All We Do","Integrity First","Respect for Others"],answer:2},
-  {q:"What is the second Air Force Core Value?",options:["Excellence in All We Do","Integrity First","Service Before Self","Loyalty to Country"],answer:2},
-  {q:"What is the third Air Force Core Value?",options:["Service Before Self","Integrity First","Duty Honor Country","Excellence in All We Do"],answer:3},
-  {q:"In military time, what is 1:00 PM?",options:["0100","1100","1300","1500"],answer:2},
-  {q:"In military time, what is midnight?",options:["0000 or 2400","1200","2000","2359"],answer:0},
-  {q:"In military time, what is 3:30 AM?",options:["0030","0330","1530","0300"],answer:1},
-  {q:"In military time, what is 6:45 PM?",options:["0645","1845","1645","0845"],answer:1},
-  {q:"In military time, what is noon?",options:["0000","1200","2400","1000"],answer:1},
-  {q:"In military time, what is 9:00 PM?",options:["0900","1900","2100","2300"],answer:2},
-  {q:"In military time, what is 11:59 PM?",options:["1159","2359","2300","0059"],answer:1},
-  {q:"In military time, what is 8:15 AM?",options:["0815","2015","1815","0415"],answer:0},
-  {q:"In military time, what is 2:00 AM?",options:["1400","0200","0020","2200"],answer:1},
-  {q:"How do you say 1400 in military time (spoken)?",options:["Fourteen hundred hours","Two PM hours","One-four hundred","Fourteen zero zero"],answer:0},
-  {q:"What time is 'zero dark thirty' commonly referred to?",options:["0030","Very early in the morning (before dawn)","12:30 AM exactly","0300"],answer:1},
-  {q:"In military time, what is 5:00 PM?",options:["0500","1500","1700","0050"],answer:2},
-  {q:"What is the standard reporting statement format at BMT?",options:["Sir/Ma'am, Airman [Last Name] reports as ordered","Hello, I'm Airman [Name]","Reporting for duty, Sir","Airman [Name] present and accounted for"],answer:0},
-  {q:"Which PT test component measures upper body strength at BMT?",options:["Pull-ups","Sit-ups","Push-ups","Bench press"],answer:2},
-  {q:"What does PT stand for in a military context?",options:["Personal Training","Physical Therapy","Physical Training","Passing Test"],answer:2},
-  {q:"What is the minimum passing score for the Air Force Fitness Assessment (overall)?",options:["60","70","75","80"],answer:3},
-  {q:"How many minutes do you have to complete the 1.5-mile run in the Air Force fitness test (male, under 30)?",options:["9:00","11:57","13:30","15:00"],answer:1},
-  {q:"What are the four components of the Air Force Fitness Assessment?",options:["Push-ups, sit-ups, pull-ups, run","Aerobic component, push-ups, sit-ups, waist measurement","Strength, endurance, flexibility, agility","Sprint, swim, lift, run"],answer:1},
-  {q:"What is the waist measurement limit for male Airmen under 30 on the Air Force fitness test?",options:["32.5 inches","35 inches","39.5 inches","40 inches"],answer:2},
-  {q:"How many push-ups does a male Airman under 25 need for a 'satisfactory' score?",options:["27","33","39","45"],answer:1},
-  {q:"What physical activity is most important to train before BMT?",options:["Swimming","Running","Weightlifting","Cycling"],answer:1},
-  {q:"What does the Air Force Song begin with?",options:["Off we go into the wild blue yonder","Anchors aweigh my boys","From the halls of Montezuma","Over hill over dale"],answer:0},
-  {q:"What is the Air Force song officially called?",options:["The Wild Blue Yonder","The Air Force Song","Anchors Away","Off We Go"],answer:0},
-  {q:"Who wrote the Air Force Song?",options:["Irving Berlin","Robert Crawford","George M. Cohan","Francis Scott Key"],answer:1},
-  {q:"In the Air Force Song, Airmen are called what?",options:["Warriors","Defenders","Nothing can stop the Army Air Corps","Airmen of the future"],answer:2},
-  {q:"What is the lowest enlisted rank in the Air Force?",options:["Airman Basic","Airman","Senior Airman","Airman First Class"],answer:0},
-  {q:"What is the pay grade of Airman Basic?",options:["E-1","E-2","E-3","E-4"],answer:0},
-  {q:"What rank is E-2 in the Air Force?",options:["Airman Basic","Airman","Airman First Class","Senior Airman"],answer:1},
-  {q:"What rank is E-3 in the Air Force?",options:["Airman","Airman First Class","Senior Airman","Staff Sergeant"],answer:1},
-  {q:"What rank is E-4 in the Air Force?",options:["Airman First Class","Senior Airman","Staff Sergeant","Technical Sergeant"],answer:1},
-  {q:"What rank is E-5 in the Air Force?",options:["Senior Airman","Staff Sergeant","Technical Sergeant","Master Sergeant"],answer:1},
-  {q:"What rank is E-6 in the Air Force?",options:["Staff Sergeant","Technical Sergeant","Master Sergeant","Senior Master Sergeant"],answer:1},
-  {q:"What rank is E-7 in the Air Force?",options:["Technical Sergeant","Master Sergeant","Senior Master Sergeant","Chief Master Sergeant"],answer:1},
-  {q:"What rank is E-8 in the Air Force?",options:["Master Sergeant","Senior Master Sergeant","Chief Master Sergeant","Command Chief"],answer:1},
-  {q:"What rank is E-9 in the Air Force?",options:["Senior Master Sergeant","Chief Master Sergeant","Command Chief Master Sergeant","Sergeant Major"],answer:1},
-  {q:"What is the highest enlisted rank in the Air Force?",options:["Chief Master Sergeant","Command Chief Master Sergeant","Chief Master Sergeant of the Air Force","Senior Master Sergeant"],answer:2},
-  {q:"What is the pay grade of Second Lieutenant in the Air Force?",options:["O-1","O-2","O-3","W-1"],answer:0},
-  {q:"What rank is O-2 in the Air Force?",options:["Second Lieutenant","First Lieutenant","Captain","Major"],answer:1},
-  {q:"What rank is O-3 in the Air Force?",options:["First Lieutenant","Captain","Major","Lieutenant Colonel"],answer:1},
-  {q:"What rank is O-4 in the Air Force?",options:["Captain","Major","Lieutenant Colonel","Colonel"],answer:1},
-  {q:"What rank is O-5 in the Air Force?",options:["Major","Lieutenant Colonel","Colonel","Brigadier General"],answer:1},
-  {q:"What rank is O-6 in the Air Force?",options:["Lieutenant Colonel","Colonel","Brigadier General","Major General"],answer:1},
-  {q:"What rank is O-7 in the Air Force?",options:["Colonel","Brigadier General","Major General","Lieutenant General"],answer:1},
-  {q:"What rank is O-8 in the Air Force?",options:["Brigadier General","Major General","Lieutenant General","General"],answer:1},
-  {q:"What rank is O-9 in the Air Force?",options:["Major General","Lieutenant General","General","General of the Air Force"],answer:1},
-  {q:"What rank is O-10 in the Air Force?",options:["Lieutenant General","General","General of the Air Force","Chief of Staff"],answer:1},
-  {q:"What is the insignia for an Airman Basic?",options:["One chevron","Two chevrons","No insignia","One stripe"],answer:2},
-  {q:"How many chevrons does a Staff Sergeant wear?",options:["2","3","4","5"],answer:1},
-  {q:"What distinguishes a Senior Airman's insignia?",options:["Three chevrons","Two chevrons and a star","Three chevrons and a star below","Four chevrons"],answer:1},
-  {q:"What is 'attention' in marching commands?",options:["Stand with feet shoulder-width apart","Stand with heels together, toes at 45 degrees, arms at sides","Stand at ease with hands behind back","Stand with eyes closed"],answer:1},
-  {q:"What is 'parade rest'?",options:["Standing at attention","Left foot moves 12 inches, hands clasped behind back","Standing at ease with feet together","Sitting in a resting position"],answer:1},
-  {q:"What is the command 'fall in' mean?",options:["Get on the ground","Form the formation in your assigned position","Run to your position","Exit the area"],answer:1},
-  {q:"What is 'fall out'?",options:["Collapse on the ground","Leave the formation informally","Run away from formation","An emergency command"],answer:1},
-  {q:"When marching, which foot do you step off with first?",options:["Right foot","Left foot","Either foot","The foot called out"],answer:1},
-  {q:"What is 'half step' in marching?",options:["Marching at half speed","A 15-inch step instead of the normal 24-inch step","Marching with one foot","Marching in place"],answer:1},
-  {q:"What is the normal marching step length?",options:["18 inches","24 inches","30 inches","12 inches"],answer:1},
-  {q:"What is 'double time' in marching?",options:["Marching at 180 steps per minute at a run","Marching twice as slowly","Two-step marching","Marching with exaggerated arm swings"],answer:0},
-  {q:"What does 'right face' command mean?",options:["Turn 45 degrees to the right","Turn 90 degrees to the right","Turn 180 degrees to the right","Face right and walk"],answer:1},
-  {q:"What does 'about face' command mean?",options:["Turn to face the person behind you","Turn 180 degrees to the rear","Look behind you without moving","Turn 90 degrees left"],answer:1},
-  {q:"What is 'at ease' in military context?",options:["Completely relax and sit","Stand with left foot in place, hands behind back, may move but not talk","Complete dismissal","Stand still but talk quietly"],answer:1},
-  {q:"What is 'rest' in military drill?",options:["Same as at ease but may also talk","Sit down","Go to sleep","Complete relaxation"],answer:0},
-  {q:"What command returns troops to attention from parade rest?",options:["Attention","Flight, attention","Squad, fall in","Stand by"],answer:0},
-  {q:"What is a 'flight' in Air Force structure?",options:["A single aircraft","The basic unit at BMT, usually 40–60 trainees","A squadron of aircraft","A team of 10 Airmen"],answer:1},
-  {q:"What is a 'squadron' in Air Force organisation?",options:["A group of 5 people","Multiple flights forming a unit","A single aircraft","A team of officers only"],answer:1},
-  {q:"What is the role of a Military Training Instructor (MTI) at BMT?",options:["To fly aircraft","To train and evaluate new recruits","To manage base logistics","To teach classroom courses only"],answer:1},
-  {q:"What do trainees call MTIs by default?",options:["Sir or Ma'am","Sergeant","Drill Sergeant","Instructor"],answer:0},
-  {q:"What is the Uniform Code of Military Justice (UCMJ)?",options:["A dress code for military personnel","The federal law governing the conduct of military members","A training manual","An officer promotion guide"],answer:1},
-  {q:"What is AFSC?",options:["Air Force Social Club","Air Force Specialty Code — a job classification code","Air Force Safety Command","Airman Flight Supervision Certificate"],answer:1},
-  {q:"What does TDY stand for?",options:["Training Duty Year","Temporary Duty — a temporary assignment away from home station","Total Deployment Years","Training Development Yearbook"],answer:1},
-  {q:"What does PCS stand for?",options:["Permanent Change of Station","Personal Combat Skills","Primary Command Supervisor","Physical Combat Standards"],answer:0},
-  {q:"What does ASVAB stand for?",options:["Armed Services Vocational Aptitude Battery","Airman Standards Verification and Assessment Baseline","Air Service Vocational Ability Benchmark","Armed Services Variable Assessment Battery"],answer:0},
-  {q:"What ASVAB score is needed to enlist in the Air Force?",options:["31 AFQT","36 AFQT","50 AFQT","65 AFQT"],answer:1},
-  {q:"How many meals a day should you eat to prepare for BMT?",options:["1","2","3","4"],answer:2},
-  {q:"Why is it recommended to stop drinking soda before BMT?",options:["It is banned at BMT and quitting early prevents withdrawal","Soda improves performance","There is no restriction on soda at BMT","Soda makes you taller"],answer:0},
-  {q:"Why must you stop using tobacco products before BMT?",options:["Tobacco use is encouraged at BMT","To avoid withdrawal symptoms during training","Tobacco is allowed at BMT","It has no effect on training"],answer:1},
-  {q:"Why is alcohol prohibited before BMT?",options:["It is allowed in moderation","Alcohol impairs physical conditioning, sleep, and can cause withdrawal","The military encourages sobriety only during BMT","It is not prohibited"],answer:1},
-  {q:"Why is a set sleep schedule important before BMT?",options:["You will sleep 10+ hours at BMT","BMT follows a strict daily schedule and your body needs to adapt","Sleep doesn't affect performance","The Air Force doesn't regulate sleep at BMT"],answer:1},
-  {q:"What does the Airman's Creed describe?",options:["Aircraft specifications","The identity, commitment and warrior ethos of Air Force Airmen","BMT rules and regulations","The history of the Air Force"],answer:1},
-  {q:"How many stanzas are in the Airman's Creed?",options:["3","4","5","6"],answer:2},
-  {q:"The Airman's Creed states 'I am faithful to a proud heritage, a tradition of ___'",options:["Victory","Service Before Self","Honor","Excellence"],answer:1},
-  {q:"What does the Airman's Creed say Airmen are guardians of?",options:["Freedom and justice","Democracy and peace","Freedom and democracy","Liberty and justice"],answer:2},
-  {q:"According to the Airman's Creed, what will Airmen never leave behind?",options:["Their mission","A fallen comrade","Their weapons","Their post"],answer:1},
-  {q:"What does 'Integrity First' mean as an Air Force Core Value?",options:["Always be first in line","Be honest, do what is right even when no one is watching","Follow orders without question","Maintain physical fitness"],answer:1},
-  {q:"What does 'Service Before Self' mean as an Air Force Core Value?",options:["Always serve food first","Place duty and the needs of the mission above personal interests","Exercise before meals","Report for duty 30 minutes early"],answer:1},
-  {q:"What does 'Excellence in All We Do' mean as an Air Force Core Value?",options:["Win every competition","Strive for the highest standards in all personal and professional activities","Score 100% on every test","Never make mistakes"],answer:1},
-  {q:"In the Airman's Creed, Airmen are described as members of what?",options:["The finest Air Force in the world","The strongest military on Earth","A team of warriors","A global defense network"],answer:0},
-  {q:"The Airman's Creed states Airmen will not ___.",options:["Fail any mission","Leave the fight or desert the mission","Compromise their values","Follow unlawful orders"],answer:1},
-  {q:"What is the purpose of memorising your reporting statement?",options:["To impress your family","To properly and respectfully address superiors when reporting for duty","To pass a written test","To remember your name"],answer:1},
-  {q:"What are the standard items on most BMT packing lists?",options:["Gaming console, civilian clothes, personal weapons","Civilian identification, minimal toiletries, proper undergarments per AF guidance","Full civilian wardrobe, electronics, entertainment","Only the uniform the Air Force issues"],answer:1},
-  {q:"What document should you memorise before attending BMT?",options:["Your lease agreement","The memory work worksheet","Your personal diary","Your high school transcript"],answer:1},
-  {q:"Why is knowing military time important at BMT?",options:["To impress civilian friends","All schedules, orders, and communications use military time","To pass the ASVAB","It's optional knowledge"],answer:1},
-  {q:"What is the term for the formal daily routine at BMT?",options:["The BMT Schedule","The Training Plan","The POI (Plan of Instruction)","Daily Order"],answer:2},
-  {q:"What is BMT's primary goal for trainees?",options:["Learn to fly aircraft","Transition civilians into disciplined military Airmen","Teach advanced combat skills","Earn a college degree"],answer:1},
-  {q:"How many push-up repetitions count only if the chest nearly touches the floor and arms fully extend?",options:["All of them — proper form is required","Only alternating ones","Only odd-numbered ones","The first five only"],answer:0},
-  {q:"What type of run is used in the Air Force fitness test?",options:["400-meter dash","1.5-mile timed run","5K timed run","2-mile timed run"],answer:1},
-  {q:"What is the purpose of the sit-up component of the Air Force fitness test?",options:["Test flexibility","Measure core/abdominal strength and endurance","Test leg strength","Measure overall fitness"],answer:1},
-  {q:"Why is junk food discouraged before and during BMT?",options:["The Air Force owns all food vendors","It impairs energy, recovery, and physical performance needed for rigorous training","The Air Force provides all snacks","It is not discouraged"],answer:1},
-  {q:"What does 'zero dark thirty' often imply about BMT daily schedules?",options:["Training ends at midnight","Wake-up calls and training begin extremely early in the morning","BMT is conducted at night","Lights-out is at 0030"],answer:1},
-  {q:"What is the Air Force song's chorus about?",options:["Ground combat","Nothing can stop the Army Air Corps — aerial superiority","The history of aviation","Defending the homeland"],answer:1},
-  {q:"What is the significance of the rank insignia on a uniform?",options:["It's decorative","It identifies an Airman's rank and level of authority","It identifies their unit","It identifies their AFSC"],answer:1},
-  {q:"What is a Chief Master Sergeant of the Air Force (CMSAF)?",options:["The senior-most officer in the Air Force","The senior-most enlisted Airman and advisor to the Chief of Staff","A warrant officer rank","A senior NCO at base level"],answer:1},
-  {q:"What does NCO stand for?",options:["Non-Combat Officer","Non-Commissioned Officer","National Command Operations","New Cadet Officer"],answer:1},
-  {q:"Which ranks are considered NCOs in the Air Force?",options:["E-1 through E-4","E-5 (Staff Sergeant) through E-9","O-1 through O-3","E-4 through E-6"],answer:1},
-  {q:"What does SNCO stand for?",options:["Special Non-Commissioned Officer","Senior Non-Commissioned Officer (E-7 through E-9)","Subordinate NCO","Staff NCO"],answer:1},
-  {q:"How is 'flight' used at BMT?",options:["In aircraft operations only","As the basic organisational unit of trainees (typically 40–60 recruits)","To describe a training sortie","An escape manoeuvre"],answer:1},
-  {q:"What is a 'Thunderbolt' in Air Force BMT terminology?",options:["A punishment run","An aircraft type","A nickname for the MTI's hat","An exercise circuit"],answer:2},
-  {q:"What does 'chow' mean in military slang?",options:["A type of push-up","Food or a meal","Dismissal from formation","The barracks area"],answer:1},
-  {q:"What is 'latrine' in military terminology?",options:["A type of marching formation","The bathroom/restroom facilities","The sleeping area","The training field"],answer:1},
-  {q:"What is 'rack' in military slang?",options:["A storage unit for weapons","A bunk bed or sleeping area","A form of punishment","A rank designation"],answer:1},
-  {q:"What is 'PT gear' at BMT?",options:["Personal tools","The uniform worn during physical training","The equipment carried on a run","A type of protective vest"],answer:1},
-  {q:"What are 'blues' in Air Force terminology?",options:["A type of demerit","The Air Force dress uniform","Low morale","Exercises done in a group"],answer:1},
-  {q:"What is 'dorm' at BMT?",options:["A punishment location","The dormitory where trainees sleep","The cafeteria","The training classroom"],answer:1},
-  {q:"What does 'Airman's Run' at BMT involve?",options:["An individual fitness test","A ceremonial group run in the final week of BMT, often with family watching","A secret escape route","A run done in full gear"],answer:1},
-  {q:"What is BMT's Coin Ceremony?",options:["A financial literacy class","A ceremony where graduates receive a coin signifying completion of BMT","A currency exchange","A fundraising event"],answer:1},
-  {q:"What is the purpose of the Warrior Week at BMT?",options:["A week of rest","The culminating training event testing survival, combat, and mission skills","A week of classroom studies","A final medical evaluation"],answer:1},
-  {q:"What is 'toe the line' at BMT?",options:["Line up with the tips of your toes on a marked line for inspection or formation","A type of punishment","Walking in a straight line","A marching technique"],answer:0},
-  {q:"What does AFBMT stand for?",options:["Air Force Basic Military Training","Air Force Base Maintenance Team","Airman Fitness and Basic Military Test","Air Force Battle Management Terminal"],answer:0},
-  {q:"What are the Air Force's core values displayed as an acronym?",options:["ISE — Integrity, Service, Excellence","SEI — Service, Excellence, Integrity","IES — Integrity, Excellence, Service","ESI — Excellence, Service, Integrity"],answer:0},
-  {q:"Why is the Airman's Creed important at BMT?",options:["It is recited as a greeting","It defines the Airman identity and is recited at graduation","It is optional memorization","It describes uniform regulations"],answer:1},
-  {q:"What is the Air Force's official motto?",options:["Aim High... Fly-Fight-Win","No One Comes Close","Always Ready","Semper Fi"],answer:0},
-  {q:"What is the meaning of 'Aim High... Fly-Fight-Win'?",options:["Instructions for pilots only","The Air Force's recruiting and motivational slogan encouraging high standards","A marching cadence","A PT routine name"],answer:1},
-  {q:"What is the Air Force symbol?",options:["An eagle holding arrows","The star-spangled banner","A wing with a star and bars","A sword and shield"],answer:2},
-  {q:"What does the eagle represent on Air Force rank insignia for generals?",options:["Freedom and power","The Colonel rank (O-6) — an eagle is worn on the collar","The Chief of Staff rank","The highest enlisted rank"],answer:1},
-  {q:"How many stars does a Brigadier General wear?",options:["1","2","3","4"],answer:0},
-  {q:"How many stars does a Major General wear?",options:["1","2","3","4"],answer:1},
-  {q:"How many stars does a Lieutenant General wear?",options:["2","3","4","5"],answer:1},
-  {q:"How many stars does a General (O-10) wear?",options:["3","4","5","6"],answer:1},
-  {q:"What is the title of the senior officer who leads the Air Force?",options:["Secretary of Defense","General of the Air Force","Chief of Staff of the Air Force","Commander in Chief"],answer:2},
-  {q:"What does 'fall in' mean at BMT?",options:["Drop to the ground","Assemble in formation in your assigned position","Enter the barracks","Begin running"],answer:1},
-  {q:"What does 'dismissed' mean at BMT?",options:["You are being expelled","You are released from the formation or duty","You failed the inspection","You must go to sick call"],answer:1},
-  {q:"What is 'sick call' in military terms?",options:["Calling in sick to work","The process for seeking medical attention as a military member","A daily roll call","A training exercise"],answer:1},
-  {q:"What is 'detail' in military terminology?",options:["A thorough inspection","A work assignment or task given to military personnel","A type of uniform","A disciplinary action"],answer:1},
-  {q:"What is 'AWOL'?",options:["Advanced Weapons Operations Level","Absent Without Leave — leaving without permission","A type of training exercise","An award for outstanding leadership"],answer:1},
-  {q:"What happens if a trainee goes AWOL from BMT?",options:["They are given extra PT","They face serious legal consequences under the UCMJ including discharge","They are sent home early","They must write an essay"],answer:1},
-  {q:"What is 'reveille' at BMT?",options:["A type of march","The bugle call or signal to wake up in the morning","An evening ceremony","A type of inspection"],answer:1},
-  {q:"What is 'taps' in military tradition?",options:["A marching cadence","A bugle call signifying lights-out or sounded at military funerals","A physical exercise","An award ceremony"],answer:1},
-  {q:"What is a 'guidon' at BMT?",options:["A compass used for navigation","A flag or pennant identifying a military unit","A type of weapon","A physical training device"],answer:1},
-  {q:"What is the difference between an officer and an enlisted member?",options:["Officers fly aircraft; enlisted do not","Officers are commissioned leaders (typically college graduates); enlisted are non-commissioned members","Officers are permanent; enlisted are temporary","Officers are older than enlisted"],answer:1},
-  {q:"What does 'commissioned officer' mean?",options:["An officer paid by commission","An officer who has received a formal commission from the President","An officer in charge of a commission","A part-time officer"],answer:1},
-  {q:"What does 'Dress Right, Dress' mean in drill?",options:["Wear your best uniform","Align yourself with the person to your right in formation","Put on your dress uniform","Walk to the right"],answer:1},
-  {q:"What is 'cover' in military terminology?",options:["Taking cover from enemy fire","A military hat or headgear","A camouflage uniform","An alias"],answer:1},
-  {q:"What is 'post' in military terms?",options:["Mail delivery","An assigned duty station or position","A fence post on base","A type of punishment"],answer:1},
-  {q:"What is the purpose of memorising rank structure before BMT?",options:["To pass a general knowledge test","To properly identify, address and show appropriate respect to those of different ranks","To impress your recruiter","It is not necessary before BMT"],answer:1},
-  {q:"What is 'chow hall' at BMT?",options:["A hallway in the barracks","The dining facility where Airmen eat meals","The training classroom","The recreation room"],answer:1},
-  {q:"Why are three meals a day important during BMT prep?",options:["The Air Force requires you to gain weight","To fuel the body properly for intense physical and mental demands","To get used to military food","The number of meals doesn't matter"],answer:1},
-  {q:"What type of shoes should you start wearing during BMT prep?",options:["Flip-flops","Athletic running shoes to condition your feet","Dress shoes","Military boots immediately"],answer:1},
-  {q:"How should you address a military officer you don't know their name?",options:["Hey you","Sir or Ma'am depending on gender","By their job title","By their first name"],answer:1},
-  {q:"What is 'billeting' in military terms?",options:["A billing invoice","Assigned housing or lodging for military personnel","A type of physical training","A marching command"],answer:1},
-  {q:"What is 'indoc' short for?",options:["Industrial documentation","Indoctrination — an introductory period at BMT learning basic rules","Individual doctor","Independent command"],answer:1},
-  {q:"What is an 'inspection' at BMT?",options:["A medical check-up","A formal review of trainees' uniforms, rooms, and personal appearance by leadership","A practice test","A training flight"],answer:1},
-  {q:"Why should you prepare your feet before BMT?",options:["To pass a foot inspection","Walking long distances in boots can cause blisters; conditioned feet reduce injury risk","The Air Force checks feet on day 1","Feet preparation is not important"],answer:1},
-  {q:"What is the Air Force's enlisted entry rank?",options:["Airman First Class","Airman","Private","Airman Basic (E-1)"],answer:3},
-  {q:"What does 'roger' mean in military communication?",options:["No","Message received / understood","Repeat the message","Stand by"],answer:1},
-  {q:"What does 'wilco' mean in military communication?",options:["Will comply — I have received the message and will act on it","I do not understand","Stand by","Message sent"],answer:0},
-  {q:"What does 'negative' mean in military communication?",options:["No","Negative altitude","Don't proceed","Unknown"],answer:0},
-  {q:"What does 'affirmative' mean in military communication?",options:["Agree to disagree","Yes","Stand by","Proceed with caution"],answer:1},
-  {q:"What is a 'sortie' in Air Force terms?",options:["A ground patrol","One aircraft flight mission","A group of soldiers","A type of formation"],answer:1},
-  {q:"What does 'battle buddy' concept mean?",options:["Your opponent in training","A designated partner who looks out for you and trains alongside you","A combat simulation partner","A competitive team"],answer:1},
-  {q:"What is the phonetic alphabet word for 'A'?",options:["Apple","Alpha","Able","Arrow"],answer:1},
-  {q:"What is the phonetic alphabet word for 'B'?",options:["Baker","Blue","Bravo","Beta"],answer:2},
-  {q:"What is the phonetic alphabet word for 'C'?",options:["Charlie","Cedar","Cat","Caesar"],answer:0},
-  {q:"What is the phonetic alphabet word for 'D'?",options:["David","Delta","Dog","Dragon"],answer:1},
-  {q:"What is the phonetic alphabet word for 'E'?",options:["Eagle","Echo","Edward","Empire"],answer:1},
-  {q:"What is the phonetic alphabet word for 'F'?",options:["Frank","Foxtrot","Falcon","Flag"],answer:1},
-  {q:"What is the phonetic alphabet word for 'G'?",options:["George","Green","Golf","Gamma"],answer:2},
-  {q:"What is the phonetic alphabet word for 'H'?",options:["Hotel","Henry","Homer","Hunter"],answer:0},
-  {q:"What is the phonetic alphabet word for 'I'?",options:["Ice","India","Ivan","Igloo"],answer:1},
-  {q:"What is the phonetic alphabet word for 'J'?",options:["Juliet","James","Jack","Jupiter"],answer:0},
-  {q:"What is the phonetic alphabet word for 'K'?",options:["King","Knight","Kilo","Kappa"],answer:2},
-  {q:"What is the phonetic alphabet word for 'L'?",options:["Lambda","Lemon","Lima","Lincoln"],answer:2},
-  {q:"What is the phonetic alphabet word for 'M'?",options:["Mike","Metro","Mars","Mercy"],answer:0},
-  {q:"What is the phonetic alphabet word for 'N'?",options:["Nancy","November","Niner","Neptune"],answer:1},
-  {q:"What is the phonetic alphabet word for 'O'?",options:["Oscar","Orange","Omega","Orion"],answer:0},
-  {q:"What is the phonetic alphabet word for 'P'?",options:["Peter","Papa","Panda","Phoenix"],answer:1},
-  {q:"What is the phonetic alphabet word for 'Q'?",options:["Queen","Quebec","Quest","Quail"],answer:1},
-  {q:"What is the phonetic alphabet word for 'R'?",options:["Romeo","Robert","Ranger","Raven"],answer:0},
-  {q:"What is the phonetic alphabet word for 'S'?",options:["Sam","Sierra","Snake","Scout"],answer:1},
-  {q:"What is the phonetic alphabet word for 'T'?",options:["Tom","Tango","Tiger","Thunder"],answer:1},
-  {q:"What is the phonetic alphabet word for 'U'?",options:["Uncle","Uniform","Unity","Ulysses"],answer:1},
-  {q:"What is the phonetic alphabet word for 'V'?",options:["Victor","Vulture","Viking","Vista"],answer:0},
-  {q:"What is the phonetic alphabet word for 'W'?",options:["William","Whiskey","Wolf","Warrior"],answer:1},
-  {q:"What is the phonetic alphabet word for 'X'?",options:["X-ray","Xavier","Xenon","Xander"],answer:0},
-  {q:"What is the phonetic alphabet word for 'Y'?",options:["Yellow","Yankee","York","Yogi"],answer:1},
-  {q:"What is the phonetic alphabet word for 'Z'?",options:["Zebra","Zulu","Zero","Zenith"],answer:1},
-  {q:"What number is 'niner' in the phonetic number system?",options:["7","8","9","0"],answer:2},
-  {q:"Why is '9' said as 'niner' in military communication?",options:["Tradition","To avoid confusion with the German word 'nein' (no) and the number 5","It's shorter to say","Random designation"],answer:1},
-  {q:"What does 'oscar mike' mean in military communication?",options:["Officer meeting","On the move","Out of mission","Over and message"],answer:1},
-  {q:"What is 'ETA'?",options:["Estimated Training Activity","Estimated Time of Arrival","Early Training Assessment","Emergency Travel Authority"],answer:1},
-  {q:"What does 'FOB' stand for?",options:["Forward Operating Base","Field Operations Battalion","Functional Order of Battle","First Officer's Brief"],answer:0},
-  {q:"What does the Air Force Fitness Assessment measure?",options:["Only running speed","Cardiovascular endurance, muscular strength and body composition","Combat readiness only","Mental fitness"],answer:1},
-  {q:"What is the importance of the waist measurement in the Air Force fitness test?",options:["It has no bearing on fitness","It is an indirect measure of body composition and health risk","It determines uniform size","It replaces the run test"],answer:1},
-  {q:"What should you do in the weeks before BMT regarding sleep?",options:["Stay up late to enjoy your freedom","Set and maintain a consistent sleep schedule matching military hours","Sleep as much as possible","Sleep deprivation prepares you for BMT"],answer:1},
-  {q:"What is 'lights out' in a military context?",options:["A power outage","The set time when Airmen must stop activity and sleep","Turning off electronics","A signal for assembly"],answer:1},
-  {q:"How does reducing alcohol before BMT help your preparation?",options:["Alcohol improves sleep quality","It improves sleep quality, hydration, recovery, and physical readiness","It has no effect on preparation","It is only a rule, not for health"],answer:1},
-  {q:"What is 'open ranks' in drill?",options:["A social event","A command that causes the formation to space out for inspection","Running without formation","An informal meeting"],answer:1},
-  {q:"What is 'close ranks' in drill?",options:["Finishing a run","A command to move the formation back to close interval after inspection","Closing the barracks","A punishment command"],answer:1},
-  {q:"What is 'mark time' in marching?",options:["Recording the time","Marching in place without forward movement","A rest period","A slow march"],answer:1},
-  {q:"What is 'column right' in drill?",options:["Looking to the right","A command to turn the entire formation 90 degrees to the right while marching","Moving one person to the right","A right-hand salute"],answer:1},
-  {q:"What is a 'formation' in military drill?",options:["The creation of a new unit","An organised arrangement of military personnel in a prescribed manner","A physical exercise","A classroom seating arrangement"],answer:1},
-  {q:"What is 'dress and cover' in military drill?",options:["Putting on a uniform","Aligning oneself laterally (dress) and in depth (cover) with others in formation","A type of camouflage","Covering for another Airman"],answer:1},
-  {q:"What is 'interval' in military formation?",options:["A rest break","The lateral space between individuals in a formation","A time measurement","A type of PT exercise"],answer:1},
-  {q:"What is 'distance' in military formation?",options:["The length of a run","The space between individuals front to back in a formation","The distance marched in a day","The gap between barracks"],answer:1},
-  {q:"What is a 'Blue Rope' at BMT?",options:["A physical training rope","The honour graduate distinction — a blue rope worn on the shoulder","A restraint device","A type of award ribbon"],answer:1},
-  {q:"What is 'basic allowance for housing' (BAH)?",options:["Money for food","A military housing subsidy based on location and dependent status","Free on-base housing","A loan for housing"],answer:1},
-  {q:"What does 'DEERS' stand for in military benefits?",options:["Defense Enrollment Eligibility Reporting System","Department of Enlisted Evaluation and Review System","Defense Enlistment and Eligibility Roster System","Direct Enrollment and Education Registration System"],answer:0},
-  {q:"What is 'TRICARE'?",options:["A three-step training programme","The military's health care programme","A type of fitness test","A leadership development course"],answer:1},
-  {q:"What does 'COLA' stand for in military pay?",options:["Cold Operations Logistics Allowance","Cost of Living Allowance","Compensation for Operations in Low Areas","Commissioned Officer Living Allowance"],answer:1},
-  {q:"What is the difference between 'base pay' and 'total compensation' in the military?",options:["They are identical","Base pay is the monthly salary; total compensation includes allowances, benefits and healthcare","Total compensation is always less","Base pay includes all allowances"],answer:1},
-  {q:"What year was the US Air Force established as an independent branch?",options:["1903","1941","1947","1959"],answer:2},
-  {q:"What was the Air Force called before it became an independent branch?",options:["Army Air Corps / Army Air Forces","Navy Air Wing","National Air Defense","Continental Air Command"],answer:0},
-  {q:"Where is Air Force BMT located?",options:["Colorado Springs, CO","Pensacola, FL","San Antonio, TX (JBSA-Lackland)","Dayton, OH"],answer:2},
-  {q:"What is the Air Force's primary mission?",options:["Ground combat","Air, Space and Cyberspace superiority to defend the US","Naval operations","Providing disaster relief"],answer:1},
-  {q:"What does 'USAF' stand for?",options:["United States Air Flight","United States Armed Forces","United States Air Force","Universal Service Air Force"],answer:2},
-  {q:"What is the Space Force in relation to the Air Force?",options:["A division within the Air Force","The US Space Force is a separate military branch established in 2019, originally branching from the Air Force","An Air Force special operations unit","A NATO space programme"],answer:1},
-  {q:"What is 'BMT graduation' called?",options:["Commissioning Ceremony","Airman's Week Ceremony","Coin Ceremony and Basic Graduation","Passout Parade"],answer:2},
-  {q:"Why is BMT challenging?",options:["It is designed to be easy","It intentionally creates stress to build discipline, teamwork, and resilience","It is mostly academic","Physical training is optional"],answer:1},
-  {q:"What is the best mindset to bring to BMT?",options:["Individualism and competition","Teamwork, discipline, adaptability and a positive attitude","Passivity and compliance only","Aggression toward peers"],answer:1},
-  {q:"What should you do the night before departing for BMT?",options:["Party with friends","Ensure all items are packed per the packing list, get a good sleep, and eat a solid meal","Do a heavy workout","Drink plenty of alcohol to sleep well"],answer:1},
-  {q:"What is 'PT uniform' at BMT?",options:["Professional Tactical uniform","The physical training uniform (IPTU — Improved Physical Training Uniform)","Personal Training gear","A patrol uniform"],answer:1},
-  {q:"What is 'OCP' in Air Force uniform terms?",options:["Operational Combat Protocol","Operational Camouflage Pattern — the Air Force duty uniform","Officer Cadet Programme","Overseas Combat Package"],answer:1},
-  {q:"What is the 'ABU' replaced by in the Air Force?",options:["BDU","ACU","OCP (Operational Camouflage Pattern)","ACH"],answer:2},
-  {q:"What does 'Airman' refer to broadly in Air Force culture?",options:["Only junior enlisted members","Any member of the Air Force regardless of rank","Only those who fly aircraft","Only E-1 through E-4"],answer:1},
-  {q:"What is the phonetic alphabet used for?",options:["Spelling out letters clearly in voice communication to avoid misunderstanding","Speaking faster","A secret code","Navigation only"],answer:0},
-  {q:"What is 'OPSEC'?",options:["Operational Security — protecting sensitive information from adversaries","Operational Specialty Code","Officer Personal Security Evaluation","Overseas Posting Security Certificate"],answer:0},
-  {q:"What does 'need to know' mean in a military security context?",options:["Curiosity-based information sharing","Only those who require information for their duties should have access to it","Everyone knows everything","Officers only have access to classified information"],answer:1},
-  {q:"What is 'classified information'?",options:["Public government records","Information protected from unauthorised disclosure for national security reasons","Officer personnel files","Training manuals"],answer:1},
-  {q:"What is the difference between 'Confidential', 'Secret' and 'Top Secret'?",options:["Different colours of document covers","Levels of classified information with increasing potential damage to national security if disclosed","Ranks of intelligence officers","Types of military operations"],answer:1},
-  {q:"What does 'chain of command' mean?",options:["A physical restraint","The line of authority and responsibility in a military organisation from highest to lowest rank","A communication network","A type of physical training"],answer:1},
-  {q:"Why is respecting the chain of command important at BMT?",options:["It is optional","It is the fundamental structure of military order, discipline and effectiveness","Only officers follow it","It prevents promotions"],answer:1},
-  {q:"What is a 'DD Form 214'?",options:["A disciplinary form","A Certificate of Release or Discharge from Active Duty — proof of military service","An enlistment contract","A medical form"],answer:1},
-  {q:"What is the enlistment oath for Air Force recruits?",options:["To protect and serve","'I do solemnly swear to support and defend the Constitution of the United States...'","To follow all orders without question","An oath to the President only"],answer:1},
-  {q:"What is the maximum enlistment age for the Air Force?",options:["27","35","39","42"],answer:2},
-  {q:"What is the minimum enlistment age for the Air Force?",options:["16","17","18","21"],answer:1},
-  {q:"Does the Air Force allow 17-year-olds to enlist?",options:["No","Yes, with parental consent","Yes, without restriction","Only for the Guard or Reserve"],answer:1},
-  {q:"What is the minimum education requirement to enlist in the Air Force?",options:["GED","High school diploma (HSD) is strongly preferred; GED accepted with higher ASVAB","No requirement","Associate's degree"],answer:1},
-  {q:"What is 'processing day' or 'in-processing' at BMT?",options:["The day you complete BMT","The first day of BMT where administrative tasks, medical checks and initial issue occur","A mid-course evaluation","A voluntary orientation day"],answer:1},
-  {q:"What does 'zero week' or 'reception week' refer to at BMT?",options:["The week before BMT ends","The initial processing period before formal training begins","A week with no training","The graduation week"],answer:1},
-  {q:"What type of attitude will cause you to struggle the most at BMT?",options:["Willing and positive","Resistant, individualistic and unwilling to adapt to a team environment","Quiet and observant","Eager to learn"],answer:1},
-  {q:"What is the most important thing to remember if you make a mistake at BMT?",options:["Blame a teammate","Acknowledge it, correct it quickly and learn from it","Ignore it and move on","Report the MTI"],answer:1},
-]
-
-];
-
-// ── Set metadata ─────────────────────────────────────────────
-const QUESTION_SET_NAMES = [
-  { id: 'science',   label: '🔬 Science & Tech',        idx: 0 },
-  { id: 'history',   label: '📜 History & Politics',    idx: 1 },
-  { id: 'geography', label: '🌍 Geography & Nature',    idx: 2 },
-  { id: 'arts',      label: '🎨 Arts & Philosophy',     idx: 3 },
-  { id: 'culture',   label: '💰 Economics & Culture',   idx: 4 },
-  { id: 'military',  label: '✈️ Air Force BMT',         idx: 5 },
-];
-
-// ── loadQuestions(n, enabledSetIds) ──────────────────────────
-// enabledSetIds: array of set id strings, or null/empty = all sets.
-// Picks a random allowed set, returns n shuffled non-repeating questions.
-// If n > set size, wraps around with additional shuffled passes.
-function loadQuestions(n, enabledSetIds) {
-  n = n || 12;
-  let allowedSets;
-  if (!enabledSetIds || enabledSetIds.length === 0) {
-    allowedSets = QUESTION_SET_NAMES.map(s => QUESTION_SETS[s.idx]);
-  } else {
-    allowedSets = QUESTION_SET_NAMES
-      .filter(s => enabledSetIds.includes(s.id))
-      .map(s => QUESTION_SETS[s.idx]);
-  }
-  if (allowedSets.length === 0) allowedSets = QUESTION_SETS; // fallback
-
-  const src = allowedSets[Math.floor(Math.random() * allowedSets.length)];
-  let pool = [];
-  while (pool.length < n) {
-    const batch = [...src];
-    for (let i = batch.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [batch[i], batch[j]] = [batch[j], batch[i]];
-    }
-    pool = pool.concat(batch);
-  }
-  return pool.slice(0, n);
-}
-
-// ════════════════════════════════════════
-// SET 6 — Air Force BMT Military Prep (200 Qs)
-// ════════════════════════════════════════
-[
-  // ── Military Time ──────────────────────────────────────────
   {q:"What is 1:00 PM in military time?",options:["0100","1300","1100","2100"],answer:1},
   {q:"What is 2:30 AM in military time?",options:["1430","0230","0030","2230"],answer:1},
   {q:"What is 1800 hours in standard time?",options:["6:00 AM","8:00 PM","6:00 PM","11:00 PM"],answer:2},
@@ -1108,7 +802,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"To convert PM times to military time, you add what number to the hour?",options:["10","12","24","0"],answer:1},
   {q:"What is 1000 hours in standard time?",options:["1:00 AM","10:00 PM","10:00 AM","1:00 PM"],answer:2},
 
-  // ── Airman's Creed ─────────────────────────────────────────
   {q:"What are the first words of the Airman's Creed?",options:["I am an American Airman","I serve with honor","I am a warrior","I will never leave"],answer:0},
   {q:"The Airman's Creed states: 'I am an American Airman. I am a ___.'",options:["Guardian","Warrior","Defender","Protector"],answer:1},
   {q:"According to the Airman's Creed, what is the Airman 'born from'?",options:["The sky","Determination","A legacy of valor","The sky and a dream of flight"],answer:3},
@@ -1122,7 +815,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"The Airman's Creed describes Airmen as having 'unrelenting ___'.",options:["Dedication","Perseverance","Determination","Will"],answer:1},
   {q:"The last line of the Airman's Creed references what fundamental concept?",options:["Honor","Freedom and democracy","Service","Victory"],answer:1},
 
-  // ── Air Force Core Values ───────────────────────────────────
   {q:"What are the three Air Force Core Values?",options:["Honor, Duty, Country","Integrity First, Service Before Self, Excellence In All We Do","Courage, Commitment, Character","Loyalty, Respect, Responsibility"],answer:1},
   {q:"Which Air Force Core Value comes first?",options:["Service Before Self","Excellence In All We Do","Integrity First","Honor Above All"],answer:2},
   {q:"'Service Before Self' as a Core Value means Airmen prioritise what?",options:["Their career above all","The nation and mission above personal needs","The team over the individual","Safety over speed"],answer:1},
@@ -1134,7 +826,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"Which Core Value is considered the foundation of all Air Force values?",options:["Service Before Self","Excellence In All We Do","Integrity First","Team Work"],answer:2},
   {q:"What does 'Integrity First' require beyond telling the truth?",options:["Being courageous enough to do what is right even when difficult","Following orders without question","Reporting all violations","Passing all inspections"],answer:0},
 
-  // ── Air Force Song ─────────────────────────────────────────
   {q:"What is the official title of the Air Force Song?",options:["Off We Go Into The Wild Blue Yonder","Fly High Into the Sky","Wings of Freedom","Wild Blue Yonder"],answer:0},
   {q:"The Air Force Song begins with: 'Off we go into the ___'.",options:["Big blue sky","Wild blue yonder","Great unknown","Endless horizon"],answer:1},
   {q:"In the Air Force Song, what do Airmen do 'shooting high into the sky'?",options:["Climb sunward","Float","Soar","Rise"],answer:0},
@@ -1146,7 +837,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"The Air Force Song chorus ends with what phrase?",options:["Up in the sky","Nothing can stop the Army Air Corps","Fly high above","Wings of freedom"],answer:1},
   {q:"In the Air Force Song, 'echelon' refers to what?",options:["A type of aircraft","A formation of aircraft","A type of maneuver","A wing commander"],answer:1},
 
-  // ── Reporting Statement ────────────────────────────────────
   {q:"What is the standard Air Force reporting statement format?",options:["Sir/Ma'am, Trainee [Name] reports as ordered","Trainee [Name] reporting for duty","Sir/Ma'am, I am here","Airman [Name] present and ready"],answer:0},
   {q:"When do you use your reporting statement at BMT?",options:["Only when waking up","When reporting to a superior officer or MTI as directed","Only at formations","Whenever entering a building"],answer:1},
   {q:"In the reporting statement, what do you say after 'Sir/Ma'am'?",options:["Your rank and name","Your full name and service number","Trainee, followed by your last name, reports as ordered","Your unit and flight"],answer:2},
@@ -1154,7 +844,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"What is the gender-neutral way to start a reporting statement if the MTI's gender is unknown?",options:["Soldier","Sir","Ma'am","Sir/Ma'am"],answer:3},
   {q:"What does 'reports as ordered' signify in your reporting statement?",options:["You are volunteering","You are present and responding to a direct order or summons","You are requesting permission to speak","You are surrendering to discipline"],answer:1},
 
-  // ── BMT Rank Structure ─────────────────────────────────────
   {q:"What is the lowest enlisted rank in the Air Force?",options:["Airman (E-2)","Senior Airman","Airman Basic (E-1)","Airman First Class"],answer:2},
   {q:"What rank is an E-3 in the Air Force?",options:["Airman","Airman First Class","Senior Airman","Airman Basic"],answer:1},
   {q:"What rank is an E-4 in the Air Force?",options:["Airman First Class","Senior Airman","Staff Sergeant","Airman"],answer:1},
@@ -1176,7 +865,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"Which rank comes immediately above Senior Airman?",options:["Airman First Class","Technical Sergeant","Staff Sergeant","Master Sergeant"],answer:2},
   {q:"What does 'NCO' stand for in Air Force rank terminology?",options:["Non-Combat Officer","Non-Commissioned Officer","National Command Officer","Non-Conventional Operator"],answer:1},
 
-  // ── BMT Physical Training ───────────────────────────────────
   {q:"What does PT stand for in Air Force BMT?",options:["Personal Time","Physical Training","Performance Test","Physical Testing"],answer:1},
   {q:"What is the Air Force Fitness Assessment (AFFA) primarily composed of?",options:["Push-ups, sit-ups, and a 1.5-mile run","Pull-ups, sprints, and swimming","Obstacle course and strength test","Chin-ups, dips, and a 2-mile run"],answer:0},
   {q:"What is the minimum number of push-ups required for a male aged 17–21 to pass the AF fitness test?",options:["27","33","42","50"],answer:1},
@@ -1198,7 +886,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"Where is Air Force BMT conducted?",options:["Fort Jackson, SC","Parris Island, SC","Lackland AFB, San Antonio, TX","Fort Benning, GA"],answer:2},
   {q:"What is the 'Confidence Course' at BMT?",options:["A psychological evaluation","An obstacle course designed to build confidence and teamwork","A written leadership exam","A swimming assessment"],answer:1},
 
-  // ── Marching & Drill ───────────────────────────────────────
   {q:"What command brings troops to the position of attention?",options:["Fall In","Parade Rest","Attention","Stand By"],answer:2},
   {q:"What is 'Dress Right, Dress'?",options:["A uniform inspection command","A command to align formation spacing by extending the left arm","A command to face right","A command to straighten your uniform"],answer:1},
   {q:"What does the command 'At Ease' mean?",options:["You may talk and move freely","Relax posture but remain generally in place and silent","Fall out of formation","Come to attention"],answer:1},
@@ -1220,7 +907,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"What is 'Close Ranks, March'?",options:["Closing the building","Returning to standard close formation spacing from open ranks","Dismissing the flight","Marching in a tighter column"],answer:1},
   {q:"What does 'Fall Out' mean at BMT?",options:["Fall to the ground","Leave the formation in an orderly manner","Begin running","Report to your barracks"],answer:1},
 
-  // ── BMT General Knowledge ──────────────────────────────────
   {q:"What does BMT stand for?",options:["Base Military Training","Basic Military Training","Battle Management Training","Brigade Military Training"],answer:1},
   {q:"What branch of the US military conducts BMT at Lackland AFB?",options:["Army","Navy","Air Force","Marine Corps"],answer:2},
   {q:"What is the 'Warrior Week' at BMT?",options:["The first week of training","A culminating week of field training exercises testing all skills learned","The graduation week","The PT testing week"],answer:1},
@@ -1242,7 +928,6 @@ function loadQuestions(n, enabledSetIds) {
   {q:"What is the purpose of the BMT Packing List?",options:["To limit what recruits bring and ensure standardised equipment","To tell recruits what to buy at the PX","To list prohibited items only","To assign bunk assignments"],answer:0},
   {q:"Why is memorising the Air Force rank structure important before BMT?",options:["You will be promoted based on memorisation","You must correctly address and render proper respect to all ranks — errors can result in extra training","It is only needed for officer candidates","It is tested on Day 1 in a written exam only"],answer:1},
 
-  // ── Memory Work & Additional BMT Knowledge ─────────────────
   {q:"What is 'memory work' at BMT?",options:["Studying for academic tests","Required memorised material such as the Airman's Creed, Core Values, Song, and reporting statements","An optional enrichment exercise","A type of punishment"],answer:1},
   {q:"Why should you memorise your memory work before arriving at BMT?",options:["You will be tested immediately upon arrival","MTIs test you on memory work throughout BMT and failure means extra training","Memory work is only recited at graduation","It is worth extra credit toward rank promotion"],answer:1},
   {q:"What is the best strategy for memorising the Airman's Creed before BMT?",options:["Read it once the night before","Repeat it aloud daily in pieces until the full text is memorised","Write it 100 times","Listen to an audio recording only"],answer:1},
@@ -1284,34 +969,28 @@ function loadQuestions(n, enabledSetIds) {
   {q:"What is the proper way to address a commissioned officer in the Air Force?",options:["By their first name","By their rank and last name (e.g., Captain Smith) or Sir/Ma'am","As 'Boss'","As 'Sir' regardless of gender"],answer:1},
   {q:"What is the proper way to address an NCO at BMT?",options:["By their first name","Sir or Ma'am","By rank and last name (e.g., Staff Sergeant Jones)","As 'Sergeant' only"],answer:2},
   {q:"What does 'esprit de corps' mean in military context?",options:["A type of formation","The common spirit of pride, loyalty, and devotion within a military unit","A French marching command","A type of award"],answer:1},
-],
+]
 
 ];
 
-// ── THEME REGISTRY ──────────────────────────────────────────
-// Maps theme IDs to set indices in QUESTION_SETS
 const QUESTION_THEMES = [
-  { id: 'science',  label: '🔬 Science & Tech',    setIdx: 0 },
-  { id: 'history',  label: '🏛️ History & Politics', setIdx: 1 },
-  { id: 'geo',      label: '🌍 Geography & Nature', setIdx: 2 },
-  { id: 'arts',     label: '🎨 Arts & Philosophy',  setIdx: 3 },
-  { id: 'culture',  label: '📊 Economics & Culture',setIdx: 4 },
-  { id: 'military', label: '✈️ Air Force BMT',       setIdx: 5 },
+  { id: 'science',  label: '🔬 Science & Tech',     setIdx: 0 },
+  { id: 'history',  label: '🏛️ History & Politics',  setIdx: 1 },
+  { id: 'geo',      label: '🌍 Geography & Nature',  setIdx: 2 },
+  { id: 'arts',     label: '🎨 Arts & Philosophy',   setIdx: 3 },
+  { id: 'culture',  label: '📊 Economics & Culture', setIdx: 4 },
+  { id: 'military', label: '✈️ Air Force BMT',        setIdx: 5 },
 ];
 
-// ── loadQuestions(n, selectedThemes) ────────────────────────
-// selectedThemes: array of theme IDs, or empty/undefined = all themes
-// Picks one random matching set, returns n shuffled questions.
 function loadQuestions(n, selectedThemes) {
   n = n || 12;
   let eligible = QUESTION_THEMES;
   if (selectedThemes && selectedThemes.length > 0) {
-    eligible = QUESTION_THEMES.filter(t => selectedThemes.includes(t.id));
+    const filtered = QUESTION_THEMES.filter(t => selectedThemes.includes(t.id));
+    if (filtered.length > 0) eligible = filtered;
   }
-  if (eligible.length === 0) eligible = QUESTION_THEMES; // fallback
-
-  const theme  = eligible[Math.floor(Math.random() * eligible.length)];
-  const src    = QUESTION_SETS[theme.setIdx];
+  const theme = eligible[Math.floor(Math.random() * eligible.length)];
+  const src   = QUESTION_SETS[theme.setIdx];
   let pool = [];
   while (pool.length < n) {
     const batch = [...src];

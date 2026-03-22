@@ -108,7 +108,7 @@ function startLocalGame() {
   const p1n  = $('p1-name').value.trim() || 'Red Bot';
   const p2n  = $('p2-name').value.trim() || 'Blue Bot';
   const selectedThemes = getSelectedThemes('local-theme-chips');
-  const pool = loadQuestions(TOTAL_Q, getSelectedThemes('local-theme-chips'));
+  const pool = loadQuestions(TOTAL_Q, selectedThemes);
   gs = makeGS(p1n, p2n, shuffleArr([...pool]), shuffleArr([...pool]));
   $('online-badge').style.display = 'none';
   renderGame('local');
