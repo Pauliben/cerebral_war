@@ -1,4 +1,4 @@
-# 🤖 Robo Tug of War Quiz v2
+# 🤖 Robo Tug of War Quiz
 
 A two-player robot quiz battle. Pull the rope to your side by answering questions correctly!  
 Supports **same-screen** play and **online multiplayer** via Firebase.
